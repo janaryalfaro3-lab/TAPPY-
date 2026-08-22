@@ -1,0 +1,7 @@
+{
+  "name": "TAPREVIEWNFC — NFC Google Review Products",
+  "description": "Minimal, premium dark e-commerce website for TAPREVIEWNFC Google Review acrylic stands, tags, cards, and stickers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
