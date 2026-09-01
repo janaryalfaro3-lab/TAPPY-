@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Smartphone, Zap, CreditCard, Building, Loader2, Lock } from 'lucide-react';
+import { X, Smartphone, Zap, CreditCard, Building, Loader2, Lock, Copy, Check, Info } from 'lucide-react';
 import { CartItem, CustomerInfo, Order, PaymentMethodId } from '../types';
 import { PAYMENT_METHODS } from '../data/products';
 
@@ -18,6 +18,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 }) => {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId>('gcash');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [copiedDetail, setCopiedDetail] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedDetail(label);
+    setTimeout(() => setCopiedDetail(null), 2000);
+  };
 
   // Customer form state
   const [customer, setCustomer] = useState<CustomerInfo>({
@@ -291,10 +298,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         {getMethodIcon(method.id as PaymentMethodId)}
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-white">
-                          {method.name}
+                        <div className="text-xs font-bold text-white flex items-center gap-2">
+                          <span>{method.name}</span>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                            {method.badge}
+                          </span>
                         </div>
-                        <p className="text-[11px] text-slate-400">
+                        <p className="text-[11px] text-slate-400 mt-0.5">
                           {method.description}
                         </p>
                       </div>
@@ -314,6 +324,86 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 );
               })}
             </div>
+
+            {/* Active Payment Method Instructions */}
+            {selectedMethod === 'gcash' && (
+              <div className="p-4 bg-sky-950/40 border border-sky-500/40 rounded-xl space-y-2 text-xs font-mono">
+                <div className="flex items-center justify-between text-sky-300 font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <Smartphone className="w-4 h-4 text-sky-400" />
+                    GCash Express Send Details:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard('09764421242', 'gcash')}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500 text-sky-300 hover:text-slate-950 text-[10px] font-bold transition-colors cursor-pointer"
+                  >
+                    {copiedDetail === 'gcash' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedDetail === 'gcash' ? 'Copied!' : 'Copy Number'}</span>
+                  </button>
+                </div>
+                <div className="text-white space-y-0.5 text-[11px]">
+                  <div><strong>Account Number:</strong> <span className="text-sky-300 font-bold">09764421242</span></div>
+                  <div><strong>Account Name:</strong> TAPPY OFFICIAL STORE</div>
+                  <div className="text-slate-400 text-[10px] pt-1">
+                    Send amount: ₱{total.toLocaleString()} · Instant automatic order verification
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedMethod === 'maya' && (
+              <div className="p-4 bg-teal-950/40 border border-teal-500/40 rounded-xl space-y-2 text-xs font-mono">
+                <div className="flex items-center justify-between text-teal-300 font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <Zap className="w-4 h-4 text-teal-400" />
+                    Maya Transfer / Send Money Details:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard('09764421242', 'maya')}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-teal-500/20 hover:bg-teal-500 text-teal-300 hover:text-slate-950 text-[10px] font-bold transition-colors cursor-pointer"
+                  >
+                    {copiedDetail === 'maya' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedDetail === 'maya' ? 'Copied!' : 'Copy Number'}</span>
+                  </button>
+                </div>
+                <div className="text-white space-y-0.5 text-[11px]">
+                  <div><strong>Maya Number:</strong> <span className="text-teal-300 font-bold">09764421242</span></div>
+                  <div><strong>Account Name:</strong> TAPPY OFFICIAL STORE</div>
+                  <div className="text-slate-400 text-[10px] pt-1">
+                    Send amount: ₱{total.toLocaleString()} · Zero transaction fee
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedMethod === 'bank_transfer' && (
+              <div className="p-4 bg-indigo-950/40 border border-indigo-500/40 rounded-xl space-y-2 text-xs font-mono">
+                <div className="flex items-center justify-between text-indigo-300 font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <Building className="w-4 h-4 text-indigo-400" />
+                    GoTyme Bank Account Details:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard('016846634686', 'gotyme')}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded bg-indigo-500/20 hover:bg-indigo-500 text-indigo-300 hover:text-slate-950 text-[10px] font-bold transition-colors cursor-pointer"
+                  >
+                    {copiedDetail === 'gotyme' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedDetail === 'gotyme' ? 'Copied!' : 'Copy Account No.'}</span>
+                  </button>
+                </div>
+                <div className="text-white space-y-0.5 text-[11px]">
+                  <div><strong>Bank:</strong> GoTyme Bank (InstaPay / PESONet)</div>
+                  <div><strong>Account Number:</strong> <span className="text-indigo-300 font-bold">016846634686</span></div>
+                  <div><strong>Account Name:</strong> TAPPY OFFICIAL STORE</div>
+                  <div className="text-slate-400 text-[10px] pt-1">
+                    Transfer amount: ₱{total.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Order Summary & Pay Button */}

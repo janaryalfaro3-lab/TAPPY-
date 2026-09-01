@@ -14,6 +14,7 @@ interface ProductSectionProps {
 
 const QUICK_FILTERS = [
   { id: 'all', label: 'All Items' },
+  { id: 'low-stock', label: '🔥 Low Stock (<5 left)' },
   { id: 'stand', label: 'Stands' },
   { id: 'sticker', label: 'Stickers' },
   { id: 'card', label: 'Cards' },
@@ -49,7 +50,8 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
     return products.filter((product) => {
       // Check quick category filter
       let matchesFilter = true;
-      if (activeFilter === 'stand') matchesFilter = product.format === 'stand';
+      if (activeFilter === 'low-stock') matchesFilter = (product.stockQuantity !== undefined && product.stockQuantity <= 5 && product.stockQuantity > 0);
+      else if (activeFilter === 'stand') matchesFilter = product.format === 'stand';
       else if (activeFilter === 'sticker') matchesFilter = product.format === 'sticker';
       else if (activeFilter === 'card') matchesFilter = product.format === 'card';
       else if (activeFilter === 'tag') matchesFilter = product.format === 'tag';

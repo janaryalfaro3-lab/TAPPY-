@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Check, Plus, Minus, Zap, Heart } from 'lucide-react';
+import { X, Check, Plus, Minus, Zap, Heart, Flame } from 'lucide-react';
 import { Product } from '../types';
 import { ProductMockup } from './ProductMockup';
 import { useWishlist } from '../context/WishlistContext';
@@ -118,8 +118,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">
                   {product.name}
                 </h2>
-                <div className="font-display text-2xl font-extrabold text-white mt-2">
-                  ₱{product.price.toLocaleString()}
+                <div className="flex items-center gap-3 mt-2 flex-wrap">
+                  <span className="font-display text-2xl font-extrabold text-white">
+                    ₱{product.price.toLocaleString()}
+                  </span>
+                  {product.stockQuantity !== undefined && product.stockQuantity <= 5 && product.stockQuantity > 0 && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-300 text-[11px] font-mono font-bold animate-pulse">
+                      <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                      <span>Low Stock: Only {product.stockQuantity} Left</span>
+                    </span>
+                  )}
                 </div>
               </div>
 

@@ -30,7 +30,8 @@ export const PRODUCTS: Product[] = [
     price: 1490,
     image: standImg,
     badge: '2 Acrylic Samples',
-    idealFor: 'Countertops, reception desks, checkout desks, hotel lobbies'
+    idealFor: 'Countertops, reception desks, checkout desks, hotel lobbies',
+    stockQuantity: 3
   },
   {
     id: 'acrylic-tag',
@@ -45,7 +46,8 @@ export const PRODUCTS: Product[] = [
     price: 590,
     image: tagImg,
     badge: '2 Acrylic Samples',
-    idealFor: 'Counters, POS terminals, compact dining tables'
+    idealFor: 'Counters, POS terminals, compact dining tables',
+    stockQuantity: 16
   },
   {
     id: 'pvc-card',
@@ -60,7 +62,8 @@ export const PRODUCTS: Product[] = [
     price: 490,
     image: cardImg,
     badge: '2 PVC Samples',
-    idealFor: 'Checkout counters, bill presenters, staff handouts'
+    idealFor: 'Checkout counters, bill presenters, staff handouts',
+    stockQuantity: 4
   },
   {
     id: 'pvc-sticker',
@@ -75,7 +78,8 @@ export const PRODUCTS: Product[] = [
     price: 350,
     image: stickerImg,
     badge: '2 PVC Samples',
-    idealFor: 'Tables, counters, doors, menus, window displays'
+    idealFor: 'Tables, counters, doors, menus, window displays',
+    stockQuantity: 28
   }
 ];
 
@@ -83,16 +87,23 @@ export const PAYMENT_METHODS = [
   {
     id: 'gcash',
     name: 'GCash',
-    description: 'Instant mobile wallet payment via QR or mobile number.',
-    badge: 'Fastest in PH',
+    description: 'Send payment to 09764421242 (TAPPY OFFICIAL STORE). Instant verification.',
+    badge: '09764421242',
     iconName: 'Smartphone'
   },
   {
     id: 'maya',
     name: 'Maya',
-    description: 'Pay with Maya wallet, Maya QR, or Maya credit.',
-    badge: 'Direct Pay',
+    description: 'Send payment to 09764421242 (TAPPY OFFICIAL STORE). Maya Wallet & QR.',
+    badge: '09764421242',
     iconName: 'Zap'
+  },
+  {
+    id: 'bank_transfer',
+    name: 'GoTyme Bank Transfer',
+    description: 'GoTyme Bank: 016846634686 (TAPPY OFFICIAL STORE) via InstaPay / PESONet.',
+    badge: 'Acc: 016846634686',
+    iconName: 'Building'
   },
   {
     id: 'card',
@@ -100,12 +111,5 @@ export const PAYMENT_METHODS = [
     description: 'Visa, Mastercard, JCB, and American Express processed securely.',
     badge: 'Encrypted',
     iconName: 'CreditCard'
-  },
-  {
-    id: 'bank_transfer',
-    name: 'Bank Transfer',
-    description: 'Direct transfer via BDO, BPI, UnionBank, or InstaPay.',
-    badge: 'Zero Processing Fee',
-    iconName: 'Building'
   }
 ] as const;

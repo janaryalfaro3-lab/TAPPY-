@@ -59,12 +59,12 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="flex items-center gap-2.5 text-left group focus:outline-none cursor-pointer active:scale-95 transition-transform"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 via-indigo-500 to-teal-400 flex items-center justify-center text-white font-bold text-xs shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform">
-            NFC
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 via-indigo-500 to-teal-400 flex items-center justify-center text-white font-black text-sm shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform">
+            T
           </div>
           <div className="flex flex-col">
-            <span className="font-display text-base sm:text-lg font-bold tracking-[0.14em] uppercase text-white group-hover:text-sky-300 transition-colors">
-              TAPREVIEW<span className="text-sky-400 font-extrabold">NFC</span>
+            <span className="font-display text-base sm:text-lg font-black tracking-[0.16em] uppercase text-white group-hover:text-sky-300 transition-colors flex items-center">
+              TAPPY<span className="text-sky-400 font-extrabold text-[11px] ml-1 tracking-widest font-mono">NFC</span>
             </span>
             <span className="text-[9px] font-mono tracking-[0.18em] text-slate-400 uppercase -mt-0.5 font-semibold">
               GOOGLE REVIEW HARDWARE
@@ -73,7 +73,7 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-7 text-[12px] uppercase tracking-wider text-slate-300 font-semibold font-mono">
+        <nav className="hidden md:flex items-center gap-6 lg:gap-7 text-[12px] uppercase tracking-wider text-slate-300 font-semibold font-mono">
           <button
             id="nav-products-btn"
             onClick={onNavigateToProducts}

@@ -1,6 +1,6 @@
 {
-  "name": "TAPREVIEWNFC — NFC Google Review Products",
-  "description": "Minimal, premium e-commerce storefront for TAPREVIEWNFC Google Review acrylic stands, tags, cards, and stickers with instant tap responsiveness and scroll journey progress.",
+  "name": "TAPPY — NFC Google Review Products",
+  "description": "Minimal, premium e-commerce storefront for TAPPY Google Review acrylic stands, tags, cards, and stickers with instant tap responsiveness and scroll journey progress.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

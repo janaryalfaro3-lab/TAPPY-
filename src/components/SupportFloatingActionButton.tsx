@@ -16,10 +16,12 @@ import {
 } from 'lucide-react';
 
 // Official Contact Channels
-const WHATSAPP_NUMBER = '639171234567';
-const MESSENGER_USERNAME = 'tapreviewnfc.ph';
-const SUPPORT_EMAIL = 'support@tapreviewnfc.store';
-const SUPPORT_PHONE = '+63 917 123 4567';
+const WHATSAPP_NUMBER = '639764421242';
+const FACEBOOK_PAGE_URL = 'https://www.facebook.com/profile.php?id=61593179006229';
+const TELEGRAM_URL = 'https://t.me/+639764421242';
+const VIBER_URL = 'viber://chat?number=%2B639764421242';
+const SUPPORT_EMAIL = 'tappyofficialstore@gmail.com';
+const SUPPORT_PHONE = '0976 442 1242';
 
 const QUICK_INQUIRIES = [
   'Hi! How do I provide my Google review link for pre-programming?',
@@ -64,14 +66,21 @@ export function SupportFloatingActionButton() {
   }, []);
 
   const openWhatsApp = (msg?: string) => {
-    const textToSend = msg || customMessage || 'Hi TAPREVIEWNFC! I have a question about your NFC Google Review products.';
+    const textToSend = msg || customMessage || 'Hi TAPPY! I have an inquiry regarding NFC Google Review hardware.';
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(textToSend)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  const openMessenger = (msg?: string) => {
-    const url = `https://m.me/${MESSENGER_USERNAME}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+  const openFacebook = () => {
+    window.open(FACEBOOK_PAGE_URL, '_blank', 'noopener,noreferrer');
+  };
+
+  const openTelegram = () => {
+    window.open(TELEGRAM_URL, '_blank', 'noopener,noreferrer');
+  };
+
+  const openViber = () => {
+    window.open(VIBER_URL, '_blank', 'noopener,noreferrer');
   };
 
   const copyEmailAddress = () => {
@@ -129,55 +138,85 @@ export function SupportFloatingActionButton() {
 
             {/* Content Area */}
             <div className="p-5 space-y-5 max-h-[75vh] overflow-y-auto">
-              {/* Primary Direct Action Buttons (WhatsApp & Messenger) */}
+              {/* Primary Direct Action Buttons (WhatsApp, Messenger, Telegram, Viber) */}
               <div className="space-y-2.5">
                 <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-slate-400 block">
                   Choose Your Preferred Messenger
                 </span>
 
-                {/* WhatsApp Primary Button */}
-                <button
-                  onClick={() => openWhatsApp()}
-                  className="w-full p-3.5 bg-gradient-to-r from-[#25D366]/20 to-[#128C7E]/20 hover:from-[#25D366]/30 hover:to-[#128C7E]/30 border border-[#25D366]/50 hover:border-[#25D366] rounded-2xl transition-all flex items-center justify-between group cursor-pointer active:scale-[0.98]"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#25D366] text-slate-950 flex items-center justify-center font-bold shadow-md">
-                      <MessageCircle className="w-5 h-5 fill-slate-950" />
+                <div className="grid grid-cols-2 gap-2">
+                  {/* WhatsApp Button */}
+                  <button
+                    onClick={() => openWhatsApp()}
+                    className="p-3 bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/50 hover:border-[#25D366] rounded-2xl transition-all flex items-center gap-2.5 group cursor-pointer active:scale-95 text-left"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-[#25D366] text-slate-950 flex items-center justify-center font-bold shadow-md shrink-0">
+                      <MessageCircle className="w-4 h-4 fill-slate-950" />
                     </div>
-                    <div className="text-left">
-                      <div className="text-xs font-extrabold text-white group-hover:text-[#25D366] transition-colors flex items-center gap-1.5">
-                        <span>Chat on WhatsApp</span>
-                        <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-[#25D366]" />
-                      </div>
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        Instant chat with our product specialist
+                    <div className="min-w-0">
+                      <span className="text-xs font-bold text-white group-hover:text-[#25D366] block truncate">
+                        WhatsApp
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono block truncate">
+                        09764421242
                       </span>
                     </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
-                </button>
+                  </button>
 
-                {/* Facebook Messenger Button */}
-                <button
-                  onClick={() => openMessenger()}
-                  className="w-full p-3.5 bg-gradient-to-r from-[#0084FF]/20 to-[#00C6FF]/20 hover:from-[#0084FF]/30 hover:to-[#00C6FF]/30 border border-[#0084FF]/50 hover:border-[#0084FF] rounded-2xl transition-all flex items-center justify-between group cursor-pointer active:scale-[0.98]"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#0084FF] text-white flex items-center justify-center font-bold shadow-md">
+                  {/* Facebook Page Button */}
+                  <button
+                    onClick={() => openFacebook()}
+                    className="p-3 bg-[#1877F2]/15 hover:bg-[#1877F2]/25 border border-[#1877F2]/50 hover:border-[#1877F2] rounded-2xl transition-all flex items-center gap-2.5 group cursor-pointer active:scale-95 text-left"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-[#1877F2] text-white flex items-center justify-center font-bold shadow-md shrink-0">
                       <Send className="w-4 h-4 fill-white" />
                     </div>
-                    <div className="text-left">
-                      <div className="text-xs font-extrabold text-white group-hover:text-[#0084FF] transition-colors flex items-center gap-1.5">
-                        <span>Chat on Messenger</span>
-                        <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-[#0084FF]" />
-                      </div>
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        Official Facebook Page Support
+                    <div className="min-w-0">
+                      <span className="text-xs font-bold text-white group-hover:text-[#1877F2] block truncate">
+                        Facebook
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono block truncate">
+                        Official Page
                       </span>
                     </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
-                </button>
+                  </button>
+
+                  {/* Telegram Button */}
+                  <button
+                    onClick={() => openTelegram()}
+                    className="p-3 bg-[#229ED9]/15 hover:bg-[#229ED9]/25 border border-[#229ED9]/50 hover:border-[#229ED9] rounded-2xl transition-all flex items-center gap-2.5 group cursor-pointer active:scale-95 text-left"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-[#229ED9] text-white flex items-center justify-center font-bold shadow-md shrink-0">
+                      <Send className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs font-bold text-white group-hover:text-[#229ED9] block truncate">
+                        Telegram
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono block truncate">
+                        09764421242
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Viber Button */}
+                  <button
+                    onClick={() => openViber()}
+                    className="p-3 bg-[#7360F2]/15 hover:bg-[#7360F2]/25 border border-[#7360F2]/50 hover:border-[#7360F2] rounded-2xl transition-all flex items-center gap-2.5 group cursor-pointer active:scale-95 text-left"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-[#7360F2] text-white flex items-center justify-center font-bold shadow-md shrink-0">
+                      <Phone className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs font-bold text-white group-hover:text-[#7360F2] block truncate">
+                        Viber
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono block truncate">
+                        09764421242
+                      </span>
+                    </div>
+                  </button>
+                </div>
               </div>
 
               {/* Quick Inquiry Prompts */}
@@ -200,11 +239,11 @@ export function SupportFloatingActionButton() {
               </div>
 
               {/* Direct Support Contacts */}
-              <div className="p-3 bg-slate-950/80 border border-slate-800/90 rounded-2xl space-y-2 text-xs font-mono">
+              <div className="p-3.5 bg-slate-950/80 border border-slate-800/90 rounded-2xl space-y-2 text-xs font-mono">
                 <div className="flex items-center justify-between text-slate-300">
                   <span className="flex items-center gap-1.5 text-[11px] text-slate-400">
                     <Phone className="w-3 h-3 text-sky-400" />
-                    Direct Phone / Viber:
+                    Phone / Viber / Telegram:
                   </span>
                   <a
                     href={`tel:${WHATSAPP_NUMBER}`}
@@ -221,9 +260,9 @@ export function SupportFloatingActionButton() {
                   </span>
                   <button
                     onClick={copyEmailAddress}
-                    className="inline-flex items-center gap-1 font-bold text-sky-400 hover:underline cursor-pointer"
+                    className="inline-flex items-center gap-1 font-bold text-sky-400 hover:underline cursor-pointer text-[11px]"
                   >
-                    <span>{copiedEmail ? 'Copied!' : 'support@tapreviewnfc.store'}</span>
+                    <span>{copiedEmail ? 'Copied!' : 'tappyofficialstore@gmail.com'}</span>
                     {copiedEmail ? (
                       <Check className="w-3 h-3 text-emerald-400" />
                     ) : (

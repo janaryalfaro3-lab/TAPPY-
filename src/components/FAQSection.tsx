@@ -40,7 +40,7 @@ const FAQS: FAQItem[] = [
   {
     question: 'What payment methods do you accept?',
     answer:
-      'We accept GCash, Maya, major Credit/Debit Cards (Visa, Mastercard, JCB, AMEX), and direct Bank Transfers (BDO, BPI, UnionBank).',
+      'We accept GCash (09764421242), Maya (09764421242), GoTyme Bank transfer (016846634686 via InstaPay / PESONet), and major Credit/Debit Cards (Visa, Mastercard, JCB, AMEX).',
   },
   {
     question: 'How do I provide my Google Review link?',

@@ -86,7 +86,7 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   };
 
   const handleCopyHashtag = () => {
-    navigator.clipboard?.writeText('#TapReviewNFC');
+    navigator.clipboard?.writeText('#TAPPY');
     setCopiedTag(true);
     setTimeout(() => setCopiedTag(false), 2000);
   };
@@ -234,9 +234,9 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
 
           {/* Social Links & Hashtag Bar */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-            {/* Facebook */}
+            {/* Facebook Official */}
             <a
-              href="https://facebook.com"
+              href="https://www.facebook.com/profile.php?id=61593179006229"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-xl transition-colors group text-slate-200"
@@ -247,7 +247,7 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
                 </div>
                 <div>
                   <span className="block text-xs font-bold text-white leading-tight">Facebook</span>
-                  <span className="block text-[10px] text-slate-400 font-mono leading-tight">@tapreviewnfc.ph</span>
+                  <span className="block text-[10px] text-slate-400 font-mono leading-tight">TAPPY Official</span>
                 </div>
               </div>
               <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-slate-300 transition-colors" />
@@ -266,7 +266,7 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
                 </div>
                 <div>
                   <span className="block text-xs font-bold text-white leading-tight">Instagram</span>
-                  <span className="block text-[10px] text-slate-400 font-mono leading-tight">@tapreviewnfc</span>
+                  <span className="block text-[10px] text-slate-400 font-mono leading-tight">@tappy.ph</span>
                 </div>
               </div>
               <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-slate-300 transition-colors" />
@@ -285,7 +285,7 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
                 </div>
                 <div>
                   <span className="block text-xs font-bold text-white leading-tight">TikTok</span>
-                  <span className="block text-[10px] text-slate-400 font-mono leading-tight">@tapreviewnfc</span>
+                  <span className="block text-[10px] text-slate-400 font-mono leading-tight">@tappynfc</span>
                 </div>
               </div>
               <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-slate-300 transition-colors" />
@@ -295,7 +295,7 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
           {/* Hashtag Copy & Callout */}
           <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
             <span className="text-[11px] text-slate-400 font-medium">
-              Official Hashtag: <strong className="text-white font-mono">#TapReviewNFC</strong>
+              Official Hashtag: <strong className="text-white font-mono">#TAPPY</strong>
             </span>
             <button
               type="button"

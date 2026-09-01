@@ -23,13 +23,30 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({ type, onClose }) => {
           <p>
             Have questions about pre-programming, ordering in volume, or setting up your Google Review link?
           </p>
-          <div className="p-4 bg-slate-950/70 border border-slate-800 rounded-xl space-y-2">
+          <div className="p-4 bg-slate-950/70 border border-slate-800 rounded-xl space-y-3 font-mono">
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-mono tracking-wider font-semibold">Email</span>
-              <span className="font-bold text-sky-400 text-xs">support@tapreviewnfc.store</span>
+              <span className="text-slate-400 block text-[10px] uppercase tracking-wider font-semibold">Email Support</span>
+              <a href="mailto:tappyofficialstore@gmail.com" className="font-bold text-sky-400 text-xs hover:underline">
+                tappyofficialstore@gmail.com
+              </a>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-mono tracking-wider font-semibold">Hours</span>
+              <span className="text-slate-400 block text-[10px] uppercase tracking-wider font-semibold">Phone / WhatsApp / Viber / Telegram</span>
+              <span className="font-bold text-slate-200 text-xs">09764421242 (+63 976 442 1242)</span>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase tracking-wider font-semibold">Official Facebook Page</span>
+              <a
+                href="https://www.facebook.com/profile.php?id=61593179006229"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-sky-400 text-xs hover:underline"
+              >
+                facebook.com/tappyofficialstore
+              </a>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase tracking-wider font-semibold">Hours</span>
               <span className="font-semibold text-slate-200 text-xs">Monday – Saturday: 9:00 AM – 6:00 PM (GMT+8)</span>
             </div>
           </div>
@@ -67,20 +84,22 @@ export const PolicyModal: React.FC<PolicyModalProps> = ({ type, onClose }) => {
       body: (
         <div className="space-y-4 text-xs text-slate-300 leading-relaxed">
           <p>
-            We support standard Philippine mobile wallets, cards, and direct bank transfers.
+            We support instant Philippine mobile wallets (GCash, Maya), GoTyme bank transfers, and credit/debit cards.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono">
             <div className="p-3.5 bg-slate-950/70 border border-slate-800 rounded-xl">
               <span className="font-bold text-white block text-xs">GCash & Maya</span>
-              <span className="text-slate-400 text-[11px]">Instant mobile wallet payments.</span>
+              <span className="text-sky-400 text-xs font-bold block mt-0.5">09764421242</span>
+              <span className="text-slate-400 text-[10px]">Account: TAPPY OFFICIAL STORE</span>
             </div>
             <div className="p-3.5 bg-slate-950/70 border border-slate-800 rounded-xl">
-              <span className="font-bold text-white block text-xs">Credit & Debit Cards</span>
-              <span className="text-slate-400 text-[11px]">Visa, Mastercard, JCB, and AMEX.</span>
+              <span className="font-bold text-white block text-xs">GoTyme Bank</span>
+              <span className="text-indigo-400 text-xs font-bold block mt-0.5">016846634686</span>
+              <span className="text-slate-400 text-[10px]">InstaPay / PESONet</span>
             </div>
             <div className="p-3.5 bg-slate-950/70 border border-slate-800 rounded-xl sm:col-span-2">
-              <span className="font-bold text-white block text-xs">Direct Bank Deposit</span>
-              <span className="text-slate-400 text-[11px]">BDO, BPI, UnionBank, or InstaPay.</span>
+              <span className="font-bold text-white block text-xs">Credit & Debit Cards</span>
+              <span className="text-slate-400 text-[11px]">Visa, Mastercard, JCB, and AMEX with 3D-Secure.</span>
             </div>
           </div>
         </div>

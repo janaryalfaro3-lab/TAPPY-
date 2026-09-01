@@ -14,6 +14,7 @@ export interface Product {
   image: string;
   badge?: string;
   idealFor: string;
+  stockQuantity?: number;
 }
 
 export interface CartItem {

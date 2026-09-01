@@ -31,11 +31,11 @@ export const Footer: React.FC<FooterProps> = ({
           {/* Brand Info */}
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 via-indigo-500 to-teal-400 flex items-center justify-center text-white font-bold text-xs shadow-md shadow-sky-500/20">
-                TR
+              <span className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 via-indigo-500 to-teal-400 flex items-center justify-center text-white font-black text-sm shadow-md shadow-sky-500/20">
+                T
               </span>
-              <span className="font-display text-lg font-black tracking-[0.12em] uppercase text-white">
-                TAPREVIEW<span className="text-sky-400">NFC</span>
+              <span className="font-display text-lg font-black tracking-[0.14em] uppercase text-white flex items-center">
+                TAPPY<span className="text-sky-400 font-extrabold text-xs ml-1 font-mono">NFC</span>
               </span>
             </div>
             <p className="text-[11px] text-slate-400 tracking-wider uppercase font-mono font-medium pl-10.5">
@@ -121,9 +121,47 @@ export const Footer: React.FC<FooterProps> = ({
           </nav>
         </div>
 
+        {/* Quick Contact & Social Channels Bar */}
+        <div className="py-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 text-xs font-mono">
+          <div className="flex flex-wrap items-center gap-4 text-slate-300">
+            <span className="text-slate-400 text-[11px] uppercase tracking-wider font-semibold">Direct Channels:</span>
+            <a
+              href="https://www.facebook.com/profile.php?id=61593179006229"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sky-400 hover:text-sky-300 transition-colors flex items-center gap-1 font-bold"
+            >
+              Facebook Page
+            </a>
+            <a
+              href="https://wa.me/639764421242"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#25D366] hover:underline flex items-center gap-1 font-bold"
+            >
+              WhatsApp (09764421242)
+            </a>
+            <a
+              href="tel:09764421242"
+              className="text-slate-200 hover:text-white transition-colors"
+            >
+              Viber / Tel: 09764421242
+            </a>
+          </div>
+
+          <div>
+            <a
+              href="mailto:tappyofficialstore@gmail.com"
+              className="text-sky-400 hover:text-sky-300 font-bold transition-colors"
+            >
+              tappyofficialstore@gmail.com
+            </a>
+          </div>
+        </div>
+
         {/* Bottom copyright & note */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-mono">
-          <p>© 2026 TAPREVIEWNFC. All rights reserved.</p>
+          <p>© 2026 TAPPY. All rights reserved.</p>
           <p className="text-sky-400 font-medium flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Genuine NTAG213 NFC hardware · Manila, Philippines.

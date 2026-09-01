@@ -204,7 +204,7 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Receipt - ${order.id} - TapReviewNFC</title>
+          <title>Receipt - ${order.id} - TAPPY</title>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; color: #0f172a; max-width: 600px; margin: 0 auto; }
             h1 { font-size: 20px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
@@ -217,7 +217,7 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
         </head>
         <body>
           <div class="header">
-            <h1>TapReview NFC Philippines</h1>
+            <h1>TAPPY NFC Philippines</h1>
             <div style="font-size: 12px; color: #475569;">Commercial NFC Google Review Hardware</div>
             <div style="margin-top: 12px; font-family: monospace; font-size: 12px;">
               <strong>Order ID:</strong> ${order.id}<br/>
