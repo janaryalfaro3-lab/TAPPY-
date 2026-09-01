@@ -59,7 +59,7 @@ export const FAQSection: React.FC = () => {
   return (
     <motion.section
       id="faqs-section"
-      className="py-24 sm:py-32 bg-[#080808] text-[#E0E0E0] border-b border-white/10"
+      className="py-24 sm:py-32 bg-slate-950/50 text-white border-b border-slate-800/80 backdrop-blur-xs relative z-10"
       initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
@@ -68,19 +68,20 @@ export const FAQSection: React.FC = () => {
       <div className="max-w-3xl mx-auto px-6 md:px-12">
         {/* Section Header */}
         <div className="mb-14 sm:mb-16 space-y-3 text-left">
-          <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#2DD4BF] font-semibold">
-            Common Inquiries
-          </span>
-          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#E0E0E0]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/10 border border-sky-500/30 text-sky-400 text-[11px] font-mono font-bold tracking-wide rounded-full shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
+            <span>COMMON INQUIRIES</span>
+          </div>
+          <h2 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
             Questions, Answered.
           </h2>
-          <p className="text-sm sm:text-base text-[#949494] leading-relaxed tracking-wide">
+          <p className="text-sm sm:text-base text-slate-400 leading-relaxed tracking-wide">
             Everything you need to know about our NFC Google Review products, setup, and ordering.
           </p>
         </div>
 
         {/* Minimalist Accordion */}
-        <div className="divide-y divide-white/10 border-y border-white/10">
+        <div className="divide-y divide-slate-800/80 border-y border-slate-800/80 bg-slate-900/60 backdrop-blur-xl rounded-3xl p-4 sm:p-6 shadow-2xl ring-1 ring-white/10">
           {FAQS.map((faq, idx) => {
             const isOpen = openIndex === idx;
             return (
@@ -88,28 +89,28 @@ export const FAQSection: React.FC = () => {
                 <button
                   id={`faq-toggle-${idx}`}
                   onClick={() => toggleItem(idx)}
-                  className="w-full py-6 flex items-center justify-between text-left gap-6 cursor-pointer select-none transition-colors"
+                  className="w-full py-6 flex items-center justify-between text-left gap-6 cursor-pointer select-none transition-all active:scale-[0.98]"
                   aria-expanded={isOpen}
                 >
                   <span
-                    className={`text-base sm:text-[17px] font-medium tracking-wide transition-colors ${
-                      isOpen ? 'text-[#E0E0E0]' : 'text-[#CCCCCC] group-hover:text-white'
+                    className={`text-base sm:text-[17px] font-semibold tracking-wide transition-colors ${
+                      isOpen ? 'text-sky-400' : 'text-slate-200 group-hover:text-white'
                     }`}
                   >
                     {faq.question}
                   </span>
 
                   {/* Elegant Thin Cross Icon that smoothly rotates */}
-                  <div className="shrink-0 flex items-center justify-center w-8 h-8 text-[#949494] group-hover:text-[#2DD4BF] transition-colors">
+                  <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 border border-slate-700 text-slate-400 group-hover:text-sky-400 group-hover:border-sky-500/50 transition-all">
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
-                      strokeWidth="1.3"
+                      strokeWidth="1.6"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className={`w-5 h-5 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                        isOpen ? 'rotate-45 text-[#2DD4BF]' : 'rotate-0'
+                      className={`w-4 h-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                        isOpen ? 'rotate-45 text-sky-400' : 'rotate-0'
                       }`}
                     >
                       <line x1="12" y1="5" x2="12" y2="19" />
@@ -127,7 +128,7 @@ export const FAQSection: React.FC = () => {
                       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                       className="overflow-hidden"
                     >
-                      <div className="pb-6 pr-6 text-sm text-[#949494] leading-[1.8] tracking-[0.015em]">
+                      <div className="pb-6 pr-6 text-sm text-slate-300 leading-[1.8] tracking-[0.015em]">
                         {faq.answer}
                       </div>
                     </motion.div>

@@ -2,20 +2,26 @@
 
 @layer base {
   :root {
-    --bg-primary: #050505;
-    --bg-secondary: #0D0D0D;
-    --bg-card: #121212;
-    --text-primary: #E0E0E0;
-    --text-secondary: #949494;
-    --accent: #2DD4BF;
-    --accent-hover: #14B8A6;
-    --border-color: rgba(255, 255, 255, 0.08);
+    --bg-primary: #F8FAFC;
+    --bg-secondary: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --text-primary: #0F172A;
+    --text-secondary: #334155;
+    --text-muted: #64748B;
+    --accent-primary: #0284C7;
+    --accent-indigo: #4F46E5;
+    --accent-teal: #0D9488;
+    --border-color: rgba(15, 23, 42, 0.08);
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #050505;
-    color: #E0E0E0;
+    background-color: #F8FAFC;
+    color: #0F172A;
     letter-spacing: -0.01em;
     overflow-x: hidden;
   }
@@ -24,23 +30,81 @@
     font-family: 'DM Sans', 'Inter', sans-serif;
     letter-spacing: -0.025em;
   }
+
+  /* Global mobile tactile responsiveness */
+  button,
+  [role="button"],
+  .btn,
+  .tap-target {
+    touch-action: manipulation;
+    transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  button:active,
+  [role="button"]:active,
+  .btn:active,
+  .tap-target:active {
+    transform: scale(0.96);
+  }
 }
 
-/* Custom sleek dark scrollbar */
+/* Eye-catchy subtle professional background patterns */
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+}
+
+.bg-radial-mesh {
+  background-image: 
+    radial-gradient(at 10% 10%, rgba(2, 132, 199, 0.09) 0px, transparent 45%),
+    radial-gradient(at 85% 20%, rgba(99, 102, 241, 0.08) 0px, transparent 45%),
+    radial-gradient(at 50% 85%, rgba(13, 148, 136, 0.08) 0px, transparent 50%),
+    radial-gradient(at 90% 90%, rgba(2, 132, 199, 0.06) 0px, transparent 40%);
+}
+
+.bg-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.bg-glass-dark {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Metallic & acrylic reflective sheen */
+.sheen-overlay {
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 35%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0) 65%,
+    transparent 100%
+  );
+}
+
+/* Custom sleek soft light scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: #F8FAFC;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #202020;
+  background: #CBD5E1;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #333333;
+  background: #94A3B8;
 }
+
+

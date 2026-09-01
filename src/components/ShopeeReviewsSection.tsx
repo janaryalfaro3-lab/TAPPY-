@@ -89,8 +89,20 @@ const SHOPEE_REVIEWS: ShopeeReview[] = [
   },
 ];
 
-export const ShopeeReviewsSection: React.FC = () => {
+export const ShopeeReviewsSection: React.FC<{ isLoading?: boolean }> = ({
+  isLoading = false,
+}) => {
   const [likes, setLikes] = useState<Record<string, boolean>>({});
+  const [internalLoading, setInternalLoading] = useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setInternalLoading(false);
+    }, 750);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const currentlyLoading = isLoading || internalLoading;
 
   const toggleHelpful = (id: string) => {
     setLikes((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -103,50 +115,83 @@ export const ShopeeReviewsSection: React.FC = () => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="py-24 sm:py-32 bg-[#050505] text-[#E0E0E0] border-b border-white/10"
+      className="py-24 sm:py-32 bg-slate-950/50 backdrop-blur-xl text-white border-b border-slate-800"
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         {/* Section Header with Shopee Verification Metrics */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-14 pb-8 border-b border-white/10 gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-14 pb-8 border-b border-slate-800 gap-6">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#101010] border border-[#2DD4BF]/30 text-[#2DD4BF] font-mono text-[10px] uppercase tracking-widest font-bold">
-              <ShoppingBag className="w-3.5 h-3.5 text-[#2DD4BF]" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/10 border border-sky-500/30 text-sky-300 font-mono text-[10px] uppercase tracking-widest font-bold rounded-full">
+              <ShoppingBag className="w-3.5 h-3.5 text-sky-400" />
               Verified Customer Feedback
             </div>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#E0E0E0]">
+            <h2 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
               Merchant Stories & Reviews
             </h2>
-            <p className="text-sm text-[#949494] font-mono tracking-wide">
+            <p className="text-sm text-slate-300 font-mono tracking-wide">
               Verified businesses from cafés, clinics, salons, and hospitality across the Philippines.
             </p>
           </div>
 
           {/* Scorecard Badge */}
-          <div className="flex items-center gap-4 bg-[#0E0E0E] border border-white/10 p-4 shadow-xl">
-            <div className="text-center pr-4 border-r border-white/10">
-              <div className="text-2xl font-bold font-mono text-[#E0E0E0] flex items-center justify-center gap-1.5">
+          <div className="flex items-center gap-4 bg-slate-900/80 backdrop-blur-xl border border-slate-700/80 rounded-2xl p-4 shadow-xl">
+            <div className="text-center pr-4 border-r border-slate-800">
+              <div className="text-2xl font-bold font-mono text-white flex items-center justify-center gap-1.5">
                 <span>4.9</span>
                 <Star className="w-4 h-4 fill-[#FBBC05] text-[#FBBC05] inline" />
               </div>
-              <span className="text-[9px] font-mono uppercase tracking-wider text-[#949494] block mt-0.5">
+              <span className="text-[9px] font-mono uppercase tracking-wider text-slate-400 block mt-0.5 font-medium">
                 Average Rating
               </span>
             </div>
             <div className="space-y-1 text-[11px] font-mono">
-              <div className="text-[#E0E0E0] font-semibold flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#2DD4BF]" />
+              <div className="text-slate-200 font-semibold flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
                 1,840+ Units Delivered
               </div>
-              <div className="text-[#949494] text-[10px] flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#2DD4BF]" />
+              <div className="text-slate-400 text-[10px] flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
                 100% Pre-Encoded & Tested
               </div>
             </div>
           </div>
         </div>
 
-        {/* 5 Feedback Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* 5 Feedback Cards Grid or Skeletons */}
+        {currentlyLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+            {[1, 2, 3, 4, 5].map((idx) => (
+              <div
+                key={`shopee-skeleton-${idx}`}
+                className={`bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 flex flex-col justify-between space-y-6 ${
+                  idx === 1 ? 'lg:col-span-2' : ''
+                }`}
+              >
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between border-b border-slate-800 pb-3">
+                    <div className="space-y-1.5">
+                      <div className="h-4 w-28 bg-slate-800 rounded" />
+                      <div className="h-3 w-40 bg-slate-800/60 rounded" />
+                    </div>
+                    <div className="h-3 w-16 bg-slate-800/60 rounded" />
+                  </div>
+                  <div className="h-4 w-20 bg-slate-800 rounded" />
+                  <div className="h-5 w-3/4 bg-slate-800 rounded-md" />
+                  <div className="space-y-2">
+                    <div className="h-3 w-full bg-slate-800/70 rounded" />
+                    <div className="h-3 w-11/12 bg-slate-800/60 rounded" />
+                    <div className="h-3 w-4/5 bg-slate-800/50 rounded" />
+                  </div>
+                </div>
+                <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                  <div className="h-3 w-32 bg-slate-800/60 rounded" />
+                  <div className="h-6 w-16 bg-slate-800 rounded-lg" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {SHOPEE_REVIEWS.map((review, index) => (
             <motion.div
               key={review.id}
@@ -158,27 +203,27 @@ export const ShopeeReviewsSection: React.FC = () => {
                 delay: index * 0.08,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className={`bg-[#0E0E0E] border border-white/10 p-6 flex flex-col justify-between hover:border-[#2DD4BF]/40 transition-colors ${
+              className={`bg-slate-900/80 backdrop-blur-xl border border-slate-700/70 rounded-2xl p-6 flex flex-col justify-between hover:border-sky-400/60 hover:shadow-xl transition-all ${
                 index === 0 ? 'lg:col-span-2' : ''
               }`}
             >
               <div className="space-y-4">
                 {/* Header: User & Rating */}
-                <div className="flex items-start justify-between gap-2 border-b border-white/5 pb-3">
+                <div className="flex items-start justify-between gap-2 border-b border-slate-800 pb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-[#E0E0E0]">
+                      <span className="font-mono text-xs font-bold text-white">
                         {review.username}
                       </span>
                       {review.verified && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#2DD4BF]/10 border border-[#2DD4BF]/30 text-[#2DD4BF] text-[8px] font-mono uppercase font-semibold">
-                          <CheckCircle2 className="w-2.5 h-2.5 text-[#2DD4BF]" />
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-sky-500/20 border border-sky-500/30 text-sky-300 text-[8px] font-mono uppercase font-bold rounded">
+                          <CheckCircle2 className="w-2.5 h-2.5 text-sky-400" />
                           Verified
                         </span>
                       )}
                     </div>
-                    <div className="text-[10px] font-mono text-[#949494] mt-0.5">
-                      {review.businessType} • <span className="text-[#CCCCCC]">{review.location}</span>
+                    <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                      {review.businessType} • <span className="text-slate-300 font-medium">{review.location}</span>
                     </div>
                   </div>
 
@@ -192,28 +237,28 @@ export const ShopeeReviewsSection: React.FC = () => {
 
                 {/* Variant & Tagline */}
                 <div>
-                  <div className="text-[9px] font-mono uppercase tracking-wider text-[#2DD4BF] bg-[#2DD4BF]/10 border border-[#2DD4BF]/20 px-2 py-0.5 inline-block font-semibold mb-2">
+                  <div className="text-[9px] font-mono uppercase tracking-wider text-sky-300 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 inline-block font-semibold rounded mb-2">
                     Variant: {review.productVariant}
                   </div>
-                  <h3 className="font-display text-sm font-bold text-[#E0E0E0] mb-1.5 flex items-center gap-1.5">
-                    <MessageSquareQuote className="w-4 h-4 text-[#949494] shrink-0" />
+                  <h3 className="font-display text-sm font-bold text-white mb-1.5 flex items-center gap-1.5">
+                    <MessageSquareQuote className="w-4 h-4 text-slate-400 shrink-0" />
                     &ldquo;{review.tagline}&rdquo;
                   </h3>
-                  <p className="text-xs text-[#949494] leading-relaxed tracking-wide">
+                  <p className="text-xs text-slate-300 leading-relaxed tracking-wide">
                     {review.reviewText}
                   </p>
                 </div>
               </div>
 
               {/* Card Footer: Date & Helpful button */}
-              <div className="flex items-center justify-between pt-4 mt-4 border-t border-white/5 text-[10px] font-mono text-[#949494]">
+              <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-800 text-[10px] font-mono text-slate-400">
                 <span>{review.date}</span>
                 <button
                   onClick={() => toggleHelpful(review.id)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 border transition-colors cursor-pointer text-[10px] ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-lg transition-colors cursor-pointer text-[10px] ${
                     likes[review.id]
-                      ? 'bg-[#2DD4BF] text-[#050505] border-[#2DD4BF] font-semibold'
-                      : 'bg-[#141414] text-[#949494] border-white/10 hover:border-white/20'
+                      ? 'bg-sky-500 text-slate-950 border-sky-400 font-bold'
+                      : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:border-slate-600 hover:text-white'
                   }`}
                 >
                   <ThumbsUp className="w-3 h-3" />
@@ -225,6 +270,7 @@ export const ShopeeReviewsSection: React.FC = () => {
             </motion.div>
           ))}
         </div>
+        )}
       </div>
     </motion.section>
   );

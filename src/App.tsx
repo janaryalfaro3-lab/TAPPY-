@@ -7,31 +7,44 @@ import React, { useState } from 'react';
 import { PRODUCTS } from './data/products';
 import { Product, CartItem, Order } from './types';
 
+import { ScrollProgressBar } from './components/ScrollProgressBar';
 import { Header } from './components/Header';
+import { FullSiteNfcBackground3D } from './components/FullSiteNfcBackground3D';
 import { HeroSection } from './components/HeroSection';
 import { TrustBanner } from './components/TrustBanner';
 import { ProductSection } from './components/ProductSection';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { HowItWorksSection } from './components/HowItWorksSection';
+import { NumbersThatMatterSection } from './components/NumbersThatMatterSection';
+import { CustomerTestimonials } from './components/CustomerTestimonials';
 import { BeautySection } from './components/BeautySection';
 import { FAQSection } from './components/FAQSection';
 import { CartDrawer } from './components/CartDrawer';
 import { CheckoutModal } from './components/CheckoutModal';
 import { OrderConfirmationModal } from './components/OrderConfirmationModal';
 import { InteractiveTapDemo } from './components/InteractiveTapDemo';
+import { SupportFloatingActionButton } from './components/SupportFloatingActionButton';
 import { FinalCTA } from './components/FinalCTA';
 import { Footer } from './components/Footer';
 import { PolicyModal, PolicyType } from './components/PolicyModal';
+import { ToastProvider, useToast } from './components/ToastProvider';
+import { WishlistProvider } from './context/WishlistContext';
+import { WishlistModal } from './components/WishlistModal';
+import { OrderHistoryModal } from './components/OrderHistoryModal';
 
-export default function App() {
+function StorefrontApp() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
   const [isTapDemoOpen, setIsTapDemoOpen] = useState(false);
   const [activePolicy, setActivePolicy] = useState<PolicyType | null>(null);
   const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+
+  const { showCartToast, showToast } = useToast();
 
   // Cart Handlers
   const handleAddToCart = (
@@ -68,6 +81,9 @@ export default function App() {
     setTimeout(() => {
       setRecentlyAddedId(null);
     }, 1800);
+
+    // Trigger instant global toast notification
+    showCartToast(product, quantity, () => setIsCartOpen(true));
   };
 
   const handleUpdateQuantity = (index: number, newQuantity: number) => {
@@ -102,6 +118,28 @@ export default function App() {
     setConfirmedOrder(order);
     setIsCheckoutOpen(false);
     setCartItems([]); // clear cart
+
+    // Persist to local storage order history
+    try {
+      const stored = localStorage.getItem('tapreviewnfc_order_history');
+      const currentOrders: Order[] = stored ? JSON.parse(stored) : [];
+      const updated = [order, ...currentOrders.filter((o) => o.id !== order.id)];
+      localStorage.setItem('tapreviewnfc_order_history', JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Failed to save order to localStorage', e);
+    }
+  };
+
+  const handleReorder = (items: CartItem[]) => {
+    items.forEach((item) => {
+      handleAddToCart(
+        item.product,
+        item.quantity,
+        item.customGoogleLink,
+        item.businessName
+      );
+    });
+    setIsCartOpen(true);
   };
 
   // Scroll Navigation
@@ -122,13 +160,23 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-[#F5F5F5] flex flex-col selection:bg-[#62D8D0]/30 selection:text-[#F5F5F5] font-sans antialiased">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-sky-500/30 selection:text-sky-200 font-sans antialiased relative">
+      {/* 0. Full Website 3D NFC Background & Electromagnetic Field */}
+      <FullSiteNfcBackground3D />
+
+      {/* 0.1 Viewport Scroll Progress Bar */}
+      <ScrollProgressBar />
+
       {/* 1. Header */}
       <Header
         cartItems={cartItems}
         onOpenCart={() => setIsCartOpen(true)}
+        onOpenWishlist={() => setIsWishlistOpen(true)}
+        onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
         onNavigateToProducts={() => scrollToSection('products-section')}
         onNavigateToHowItWorks={() => scrollToSection('how-it-works-section')}
+        onNavigateToImpact={() => scrollToSection('numbers-that-matter-section')}
+        onNavigateToReviews={() => scrollToSection('testimonials-section')}
         onNavigateToMaterials={() => scrollToSection('materials-section')}
         onNavigateToFaqs={() => scrollToSection('faqs-section')}
       />
@@ -154,31 +202,46 @@ export default function App() {
         {/* 5. How It Works (3 clear human steps) */}
         <HowItWorksSection onTryTapDemo={() => setIsTapDemoOpen(true)} />
 
-        {/* 6. Materials / Finishes (Acrylic vs PVC visual comparison) */}
+        {/* 6. Numbers That Matter (Animated Counter Impact Section) */}
+        <NumbersThatMatterSection
+          onExploreProducts={() => scrollToSection('products-section')}
+        />
+
+        {/* 7. Customer Testimonials Carousel with Background Video */}
+        <CustomerTestimonials />
+
+        {/* 8. Materials / Finishes (Acrylic vs PVC visual comparison) */}
         <BeautySection
           onSelectStand={() => handleSelectMaterialProduct('acrylic-stand')}
           onSelectCard={() => handleSelectMaterialProduct('pvc-card')}
         />
 
-        {/* 7. FAQs (Clean Accordion) */}
+        {/* 9. FAQs (Clean Accordion) */}
         <FAQSection />
 
-        {/* 8. Final Product CTA */}
+        {/* 10. Final Product CTA */}
         <FinalCTA onShopClick={() => scrollToSection('products-section')} />
       </main>
+
+      {/* Persistent Floating Action Button (FAB) for WhatsApp & Messenger Support */}
+      <SupportFloatingActionButton />
 
       {/* 9. Minimal Footer */}
       <Footer
         onNavigateToProducts={() => scrollToSection('products-section')}
         onNavigateToHowItWorks={() => scrollToSection('how-it-works-section')}
+        onNavigateToImpact={() => scrollToSection('numbers-that-matter-section')}
+        onNavigateToReviews={() => scrollToSection('testimonials-section')}
         onNavigateToFaqs={() => scrollToSection('faqs-section')}
         onOpenPolicy={(policy) => setActivePolicy(policy)}
+        onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
       />
 
       {/* Modals & Drawers */}
       {/* Product Detail Modal */}
       <ProductDetailModal
         product={selectedProduct}
+        isOpen={!!selectedProduct}
         onClose={() => setSelectedProduct(null)}
         onAddToCart={(product, qty, link, biz) => handleAddToCart(product, qty, link, biz)}
         onBuyNow={handleBuyNow}
@@ -210,6 +273,7 @@ export default function App() {
       <OrderConfirmationModal
         order={confirmedOrder}
         onClose={() => setConfirmedOrder(null)}
+        onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
         onContinueShopping={() => {
           setConfirmedOrder(null);
           scrollToSection('products-section');
@@ -227,6 +291,35 @@ export default function App() {
         type={activePolicy}
         onClose={() => setActivePolicy(null)}
       />
+
+      {/* Local Storage Saved Wishlist Modal */}
+      <WishlistModal
+        isOpen={isWishlistOpen}
+        onClose={() => setIsWishlistOpen(false)}
+        onSelectProduct={(product) => setSelectedProduct(product)}
+        onAddToCart={(product, qty, e) => handleAddToCart(product, qty)}
+        onNavigateToProducts={() => scrollToSection('products-section')}
+      />
+
+      {/* Local Storage Order History & Live Tracking Modal */}
+      <OrderHistoryModal
+        isOpen={isOrderHistoryOpen}
+        onClose={() => setIsOrderHistoryOpen(false)}
+        onSelectProduct={(product) => setSelectedProduct(product)}
+        onReorder={handleReorder}
+        onNavigateToProducts={() => scrollToSection('products-section')}
+      />
     </div>
   );
 }
+
+export default function App() {
+  return (
+    <ToastProvider>
+      <WishlistProvider>
+        <StorefrontApp />
+      </WishlistProvider>
+    </ToastProvider>
+  );
+}
+
