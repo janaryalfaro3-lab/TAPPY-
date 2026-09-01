@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Flame } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { Product } from '../types';
 import { ProductMockup } from './ProductMockup';
 import { useWishlist } from '../context/WishlistContext';
@@ -18,7 +18,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const { isWishlisted, toggleWishlist } = useWishlist();
   const isAcrylic = product.material.toLowerCase().includes('acrylic');
   const wishlisted = isWishlisted(product.id);
-  const isLowStock = product.stockQuantity !== undefined && product.stockQuantity <= 5 && product.stockQuantity > 0;
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -31,27 +30,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       onClick={() => onSelectProduct(product)}
       className="group relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/70 rounded-2xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-2xl hover:shadow-sky-500/20 hover:border-sky-400 cursor-pointer ring-1 ring-white/10 hover:ring-sky-400/40"
     >
-      {/* Product Sample / Low Stock Badge & Wishlist Heart */}
+      {/* Product Sample Badge & Wishlist Heart */}
       <div className="flex items-center justify-between mb-4">
-        {isLowStock ? (
-          <span
-            id={`low-stock-badge-${product.id}`}
-            className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full font-extrabold shadow-sm bg-amber-500/20 text-amber-300 border border-amber-500/50 animate-pulse"
-          >
-            <Flame className="w-3 h-3 text-amber-400 fill-amber-400" />
-            <span>Low Stock: {product.stockQuantity} Left</span>
-          </span>
-        ) : (
-          <span
-            className={`text-[10px] font-mono uppercase tracking-wider px-3 py-1 rounded-full font-bold shadow-2xs border ${
-              isAcrylic
-                ? 'bg-sky-500/15 text-sky-300 border-sky-400/40'
-                : 'bg-indigo-500/15 text-indigo-300 border-indigo-400/40'
-            }`}
-          >
-            {product.badge}
-          </span>
-        )}
+        <span
+          className={`text-[10px] font-mono uppercase tracking-wider px-3 py-1 rounded-full font-bold shadow-2xs border ${
+            isAcrylic
+              ? 'bg-sky-500/15 text-sky-300 border-sky-400/40'
+              : 'bg-indigo-500/15 text-indigo-300 border-indigo-400/40'
+          }`}
+        >
+          {product.badge || (isAcrylic ? 'Acrylic Specimen' : 'PVC Specimen')}
+        </span>
 
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-mono font-semibold text-slate-300 bg-slate-800/80 border border-slate-700/60 px-2 py-0.5 rounded-md">
@@ -108,14 +97,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <span>·</span>
           <span className="text-slate-400">QR Fallback</span>
         </div>
-
-        {/* Urgency Callout for Low Stock */}
-        {isLowStock && (
-          <div className="pt-2 flex items-center gap-1.5 text-[11px] font-mono text-amber-300 font-semibold bg-amber-950/30 border border-amber-500/30 px-2.5 py-1.5 rounded-lg">
-            <Flame className="w-3.5 h-3.5 text-amber-400 shrink-0 fill-amber-400" />
-            <span>Only {product.stockQuantity} units left in stock · Order soon</span>
-          </div>
-        )}
       </div>
 
       {/* Pricing & Add to Cart Action */}

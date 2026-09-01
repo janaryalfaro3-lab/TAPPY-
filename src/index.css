@@ -2,16 +2,16 @@
 
 @layer base {
   :root {
-    --bg-primary: #F8FAFC;
-    --bg-secondary: #FFFFFF;
-    --bg-card: #FFFFFF;
-    --text-primary: #0F172A;
-    --text-secondary: #334155;
-    --text-muted: #64748B;
+    --bg-primary: #020617;
+    --bg-secondary: #0F172A;
+    --bg-card: #0F172A;
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-muted: #94A3B8;
     --accent-primary: #0284C7;
     --accent-indigo: #4F46E5;
     --accent-teal: #0D9488;
-    --border-color: rgba(15, 23, 42, 0.08);
+    --border-color: rgba(255, 255, 255, 0.08);
   }
 
   * {
@@ -20,10 +20,11 @@
 
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #F8FAFC;
-    color: #0F172A;
+    background-color: #020617;
+    color: #F8FAFC;
     letter-spacing: -0.01em;
     overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   
   h1, h2, h3, h4, .font-display {
@@ -48,30 +49,103 @@
   }
 }
 
+/* Theme Variant 1: Deep Midnight (Obsidian Pitch Black & Neon Sky Accents) */
+.theme-deep-midnight,
+body.theme-deep-midnight {
+  background-color: #020617 !important;
+  color: #F8FAFC !important;
+}
+
+.theme-deep-midnight .theme-bg-base {
+  background-color: #020617 !important;
+}
+
+.theme-deep-midnight .theme-bg-surface {
+  background-color: #0B1120 !important;
+}
+
+.theme-deep-midnight .theme-border {
+  border-color: rgba(51, 65, 85, 0.7) !important;
+}
+
+/* Theme Variant 2: Soft Slate (Mellow Slate Blue & Softer Contrast) */
+.theme-soft-slate,
+body.theme-soft-slate {
+  background-color: #0F172A !important;
+  color: #F1F5F9 !important;
+}
+
+.theme-soft-slate .theme-bg-base {
+  background-color: #0F172A !important;
+}
+
+.theme-soft-slate .theme-bg-surface {
+  background-color: #1E293B !important;
+}
+
+.theme-soft-slate .theme-border {
+  border-color: rgba(71, 85, 105, 0.7) !important;
+}
+
+/* Subtle contextual slate adjustments */
+.theme-soft-slate .bg-slate-950 {
+  background-color: #0f172a !important;
+}
+
+.theme-soft-slate .bg-slate-900 {
+  background-color: #1e293b !important;
+}
+
+.theme-soft-slate .bg-slate-900\/80,
+.theme-soft-slate .bg-slate-900\/70,
+.theme-soft-slate .bg-slate-900\/95,
+.theme-soft-slate .bg-slate-900\/40,
+.theme-soft-slate .bg-slate-900\/30 {
+  background-color: rgba(30, 41, 59, 0.9) !important;
+}
+
+.theme-soft-slate .bg-slate-950\/85,
+.theme-soft-slate .bg-slate-950\/90,
+.theme-soft-slate .bg-slate-950\/95,
+.theme-soft-slate .bg-slate-950\/80,
+.theme-soft-slate .bg-slate-950\/70,
+.theme-soft-slate .bg-slate-950\/60,
+.theme-soft-slate .bg-slate-950\/40 {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+}
+
+.theme-soft-slate .border-slate-800 {
+  border-color: #334155 !important;
+}
+
+.theme-soft-slate .border-slate-700 {
+  border-color: #475569 !important;
+}
+
 /* Eye-catchy subtle professional background patterns */
 .bg-grid-pattern {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
 }
 
 .bg-radial-mesh {
   background-image: 
-    radial-gradient(at 10% 10%, rgba(2, 132, 199, 0.09) 0px, transparent 45%),
-    radial-gradient(at 85% 20%, rgba(99, 102, 241, 0.08) 0px, transparent 45%),
-    radial-gradient(at 50% 85%, rgba(13, 148, 136, 0.08) 0px, transparent 50%),
-    radial-gradient(at 90% 90%, rgba(2, 132, 199, 0.06) 0px, transparent 40%);
+    radial-gradient(at 10% 10%, rgba(2, 132, 199, 0.12) 0px, transparent 45%),
+    radial-gradient(at 85% 20%, rgba(99, 102, 241, 0.1) 0px, transparent 45%),
+    radial-gradient(at 50% 85%, rgba(13, 148, 136, 0.1) 0px, transparent 50%),
+    radial-gradient(at 90% 90%, rgba(2, 132, 199, 0.08) 0px, transparent 40%);
 }
 
 .bg-glass {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 
 .bg-glass-dark {
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(2, 6, 23, 0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
@@ -88,23 +162,27 @@
   );
 }
 
-/* Custom sleek soft light scrollbar */
+/* Custom sleek dark scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F8FAFC;
+  background: #020617;
+}
+
+.theme-soft-slate ::-webkit-scrollbar-track {
+  background: #0F172A;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #334155;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #475569;
 }
 
 

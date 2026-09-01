@@ -14,7 +14,6 @@ export interface Product {
   image: string;
   badge?: string;
   idealFor: string;
-  stockQuantity?: number;
 }
 
 export interface CartItem {
@@ -46,6 +45,8 @@ export interface CustomerInfo {
   notes?: string;
 }
 
+export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered';
+
 export interface Order {
   id: string;
   createdAt: string;
@@ -55,6 +56,6 @@ export interface Order {
   total: number;
   paymentMethod: PaymentMethodId;
   customerInfo: CustomerInfo;
-  status: 'confirmed' | 'processing' | 'shipped';
+  status: OrderStatus;
   estimatedDelivery: string;
 }

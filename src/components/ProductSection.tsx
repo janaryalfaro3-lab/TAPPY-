@@ -14,7 +14,6 @@ interface ProductSectionProps {
 
 const QUICK_FILTERS = [
   { id: 'all', label: 'All Items' },
-  { id: 'low-stock', label: '🔥 Low Stock (<5 left)' },
   { id: 'stand', label: 'Stands' },
   { id: 'sticker', label: 'Stickers' },
   { id: 'card', label: 'Cards' },
@@ -50,8 +49,7 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
     return products.filter((product) => {
       // Check quick category filter
       let matchesFilter = true;
-      if (activeFilter === 'low-stock') matchesFilter = (product.stockQuantity !== undefined && product.stockQuantity <= 5 && product.stockQuantity > 0);
-      else if (activeFilter === 'stand') matchesFilter = product.format === 'stand';
+      if (activeFilter === 'stand') matchesFilter = product.format === 'stand';
       else if (activeFilter === 'sticker') matchesFilter = product.format === 'sticker';
       else if (activeFilter === 'card') matchesFilter = product.format === 'card';
       else if (activeFilter === 'tag') matchesFilter = product.format === 'tag';
@@ -218,12 +216,13 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
             {filteredProducts.map((product, idx) => (
               <motion.div
                 key={product.id}
-                initial={{ opacity: 0, y: 28 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 32 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
                 transition={{
-                  duration: 0.4,
-                  delay: idx * 0.05,
-                  ease: [0.16, 1, 0.3, 1],
+                  duration: 0.55,
+                  delay: idx * 0.08,
+                  ease: [0.21, 0.47, 0.32, 0.98],
                 }}
               >
                 <ProductCard

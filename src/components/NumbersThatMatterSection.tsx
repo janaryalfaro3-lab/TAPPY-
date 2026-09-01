@@ -7,9 +7,10 @@ import {
   Store,
   Zap,
   ShieldCheck,
-  Award,
   ArrowUpRight,
   Sparkles,
+  UserCheck,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface MetricItem {
@@ -77,30 +78,31 @@ const METRICS: MetricItem[] = [
   },
 ];
 
-const INDUSTRY_BREAKDOWNS = [
+interface Founder {
+  name: string;
+  role: string;
+  initials: string;
+  badge: string;
+  bio: string;
+  highlights: string[];
+}
+
+const FOUNDERS: Founder[] = [
   {
-    industry: 'Cafés & Specialty Coffee',
-    metric: '+340%',
-    detail: 'Increase in weekly reviews within 14 days of counter placement',
-    badge: 'Popular',
+    name: 'Kenji Alfaro',
+    role: 'Founder',
+    initials: 'KA',
+    badge: 'Vision & Strategy',
+    bio: 'Dedicated to empowering Philippine businesses with seamless, contactless review-generation hardware and high-converting local growth solutions.',
+    highlights: ['Product Architecture', 'Brand Development', 'Customer Experience'],
   },
   {
-    industry: 'Dental & Aesthetic Clinics',
-    metric: '4.9 ★',
-    detail: 'Average patient satisfaction rating maintained across branches',
-    badge: 'High Trust',
-  },
-  {
-    industry: 'Salons, Spas & Wellness',
-    metric: '2.8x',
-    detail: 'Higher review conversion compared to traditional paper QR codes',
-    badge: 'Top ROI',
-  },
-  {
-    industry: 'Boutique Hotels & Stays',
-    metric: '91%',
-    detail: 'Guests who tapped front desk NFC check-out cards left feedback',
-    badge: 'Verified',
+    name: 'John Paul Garcia',
+    role: 'Co-Founder',
+    initials: 'JPG',
+    badge: 'Operations & Engineering',
+    bio: 'Overseeing hardware reliability, high-speed microchip encoding, and nationwide fulfillment operations to ensure zero-friction performance.',
+    highlights: ['Hardware Operations', 'NFC Programming', 'Fulfillment & Logistics'],
   },
 ];
 
@@ -303,7 +305,7 @@ export function NumbersThatMatterSection({
           })}
         </div>
 
-        {/* Industry Benchmarks Bento Box */}
+        {/* Founders / Leadership Bento Box */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -313,11 +315,11 @@ export function NumbersThatMatterSection({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-6 border-b border-slate-800/80 gap-4">
             <div>
               <div className="flex items-center gap-2 text-xs font-mono text-sky-400 font-bold uppercase tracking-wider mb-1">
-                <Award className="w-4 h-4 text-sky-400" />
-                Proven Category Benchmarks
+                <UserCheck className="w-4 h-4 text-sky-400" />
+                Leadership & Vision
               </div>
               <h3 className="text-lg sm:text-xl font-extrabold text-white">
-                How NFC Google Review Hardware Performs in the Field
+                Meet the Founders Behind TAPPY
               </h3>
             </div>
 
@@ -332,28 +334,53 @@ export function NumbersThatMatterSection({
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {INDUSTRY_BREAKDOWNS.map((item, idx) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {FOUNDERS.map((founder, idx) => (
               <div
                 key={idx}
-                className="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-5 hover:border-slate-700 transition-colors flex flex-col justify-between"
+                className="bg-slate-950/80 border border-slate-800/90 rounded-2xl p-6 hover:border-sky-500/40 transition-all flex flex-col justify-between group relative overflow-hidden"
               >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono uppercase font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-md">
-                      {item.badge}
-                    </span>
-                    <span className="text-xl font-extrabold font-mono text-white">
-                      {item.metric}
+                {/* Subtle corner glow */}
+                <div className="absolute -top-12 -right-12 w-28 h-28 bg-sky-500/10 rounded-full blur-2xl group-hover:bg-sky-500/20 transition-all pointer-events-none" />
+
+                <div className="space-y-4 relative z-10">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3.5">
+                      {/* Monogram Typography Avatar (No picture) */}
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500/20 via-sky-500/10 to-blue-600/20 border border-sky-500/30 flex items-center justify-center text-sky-300 font-mono font-extrabold text-base shadow-inner group-hover:border-sky-400/60 group-hover:scale-105 transition-all">
+                        {founder.initials}
+                      </div>
+                      <div>
+                        <h4 className="text-base font-extrabold text-white group-hover:text-sky-300 transition-colors">
+                          {founder.name}
+                        </h4>
+                        <span className="text-xs font-mono font-bold text-sky-400 block">
+                          {founder.role}
+                        </span>
+                      </div>
+                    </div>
+
+                    <span className="text-[10px] font-mono uppercase font-bold text-slate-300 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg shrink-0">
+                      {founder.badge}
                     </span>
                   </div>
-                  <h4 className="text-xs font-bold text-slate-200">
-                    {item.industry}
-                  </h4>
+
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {founder.bio}
+                  </p>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-3 pt-3 border-t border-slate-800/50 leading-relaxed">
-                  {item.detail}
-                </p>
+
+                <div className="mt-5 pt-4 border-t border-slate-800/60 flex flex-wrap gap-1.5 relative z-10">
+                  {founder.highlights.map((tag, tIdx) => (
+                    <span
+                      key={tIdx}
+                      className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-400 bg-slate-900/90 border border-slate-800/80 px-2 py-0.5 rounded-md"
+                    >
+                      <CheckCircle2 className="w-3 h-3 text-sky-400" />
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             ))}
           </div>

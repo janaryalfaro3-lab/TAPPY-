@@ -31,7 +31,6 @@ export const PRODUCTS: Product[] = [
     image: standImg,
     badge: '2 Acrylic Samples',
     idealFor: 'Countertops, reception desks, checkout desks, hotel lobbies',
-    stockQuantity: 3
   },
   {
     id: 'acrylic-tag',
@@ -47,7 +46,6 @@ export const PRODUCTS: Product[] = [
     image: tagImg,
     badge: '2 Acrylic Samples',
     idealFor: 'Counters, POS terminals, compact dining tables',
-    stockQuantity: 16
   },
   {
     id: 'pvc-card',
@@ -63,7 +61,6 @@ export const PRODUCTS: Product[] = [
     image: cardImg,
     badge: '2 PVC Samples',
     idealFor: 'Checkout counters, bill presenters, staff handouts',
-    stockQuantity: 4
   },
   {
     id: 'pvc-sticker',
@@ -79,7 +76,6 @@ export const PRODUCTS: Product[] = [
     image: stickerImg,
     badge: '2 PVC Samples',
     idealFor: 'Tables, counters, doors, menus, window displays',
-    stockQuantity: 28
   }
 ];
 

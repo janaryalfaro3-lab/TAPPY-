@@ -1,0 +1,9 @@
+{
+  "rules": {
+    "orders": {
+      "read": true,
+      "write": true,
+      "description": "Stores user orders for TAPPY NFC Google Review hardware, notifying admin jaesthetic.info@gmail.com"
+    }
+  }
+}

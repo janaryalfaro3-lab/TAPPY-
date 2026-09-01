@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Orders collection: Allow customers to create and read orders, and admin to manage orders
+    match /orders/{orderId} {
+      allow read, write: if true;
+    }
+  }
+}

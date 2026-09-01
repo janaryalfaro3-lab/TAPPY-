@@ -1,5 +1,6 @@
 import React from 'react';
 import { PolicyType } from './PolicyModal';
+import { NewsletterSubscribe } from './NewsletterSubscribe';
 
 interface FooterProps {
   onNavigateToProducts: () => void;
@@ -9,6 +10,7 @@ interface FooterProps {
   onNavigateToFaqs: () => void;
   onOpenPolicy: (type: PolicyType) => void;
   onOpenOrderHistory?: () => void;
+  onOpenAdminOrders?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -19,6 +21,7 @@ export const Footer: React.FC<FooterProps> = ({
   onNavigateToFaqs,
   onOpenPolicy,
   onOpenOrderHistory,
+  onOpenAdminOrders,
 }) => {
   return (
     <footer id="main-footer" className="bg-slate-900 text-white border-t border-slate-800 py-14 sm:py-18 relative overflow-hidden">
@@ -26,7 +29,10 @@ export const Footer: React.FC<FooterProps> = ({
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-sky-600/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-600/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 space-y-12">
+        {/* Newsletter Subscription Banner */}
+        <NewsletterSubscribe />
+
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 pb-10 border-b border-slate-800">
           {/* Brand Info */}
           <div className="space-y-1.5">
@@ -86,6 +92,15 @@ export const Footer: React.FC<FooterProps> = ({
                 className="hover:text-sky-400 text-sky-300 font-bold transition-colors cursor-pointer py-1 active:scale-95 flex items-center gap-1"
               >
                 Track Order
+              </button>
+            )}
+            {onOpenAdminOrders && (
+              <button
+                id="footer-admin-orders-btn"
+                onClick={onOpenAdminOrders}
+                className="hover:text-indigo-300 text-indigo-400 font-bold transition-colors cursor-pointer py-1 active:scale-95 flex items-center gap-1"
+              >
+                Admin Database
               </button>
             )}
             <button

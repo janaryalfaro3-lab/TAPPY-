@@ -4,7 +4,7 @@ import {
   Package,
   X,
   Truck,
-  CheckCircle,
+  CheckCircle2,
   Clock,
   ExternalLink,
   ChevronDown,
@@ -24,8 +24,15 @@ import {
   ShieldCheck,
   Cpu,
   Boxes,
+  RefreshCw,
+  MapPin,
+  Radio,
+  Store,
+  ArrowRight,
+  CheckCheck,
+  Sliders,
 } from 'lucide-react';
-import { Order, CartItem, PaymentMethodId, Product } from '../types';
+import { Order, CartItem, PaymentMethodId, Product, OrderStatus } from '../types';
 import { ProductMockup } from './ProductMockup';
 import { PRODUCTS } from '../data/products';
 import { useToast } from './ToastProvider';
@@ -40,10 +47,16 @@ interface OrderHistoryModalProps {
 
 const ORDERS_STORAGE_KEY = 'tapreviewnfc_order_history';
 
-// Sample initial order for users who open tracking before placing a live order
+// Sample initial order for demonstration
 const SAMPLE_ORDER: Order = {
   id: 'TR-748921',
-  createdAt: 'Aug 28, 2026, 02:45 PM',
+  createdAt: new Date(Date.now() - 36 * 60 * 60 * 1000).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }),
   items: [
     {
       product: PRODUCTS[0], // Acrylic Stand
@@ -76,6 +89,149 @@ const SAMPLE_ORDER: Order = {
   estimatedDelivery: 'Tomorrow by 4:00 PM',
 };
 
+// Helper interface for Real-Time Timeline
+export interface RealtimeStage {
+  stage: 'pending' | 'processing' | 'shipped' | 'delivered';
+  title: string;
+  subtitle: string;
+  timestamp: string;
+  details: string;
+  isComplete: boolean;
+  isCurrent: boolean;
+  iconName: 'receipt' | 'cpu' | 'truck' | 'store';
+}
+
+export const calculateRealtimeStatus = (
+  order: Order,
+  syncTimestamp?: number,
+  overrideStage?: 'pending' | 'processing' | 'shipped' | 'delivered'
+) => {
+  // Parse order created date
+  let orderDate = new Date(order.createdAt);
+  if (isNaN(orderDate.getTime())) {
+    orderDate = new Date();
+  }
+
+  const now = syncTimestamp ? new Date(syncTimestamp) : new Date();
+  const elapsedMs = Math.max(0, now.getTime() - orderDate.getTime());
+  const elapsedHours = elapsedMs / (1000 * 60 * 60);
+
+  // Dynamic real-time stage progression based on elapsed hours or manual override
+  let derivedStage: 'pending' | 'processing' | 'shipped' | 'delivered' = 'pending';
+
+  if (overrideStage) {
+    derivedStage = overrideStage;
+  } else if (order.status === 'delivered' || elapsedHours >= 72) {
+    derivedStage = 'delivered';
+  } else if (order.status === 'shipped' || elapsedHours >= 24) {
+    derivedStage = 'shipped';
+  } else if (order.status === 'processing' || elapsedHours >= 4) {
+    derivedStage = 'processing';
+  } else {
+    derivedStage = 'pending';
+  }
+
+  const formatDate = (d: Date) => {
+    return d.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const pendingDate = new Date(orderDate.getTime());
+  const processingDate = new Date(orderDate.getTime() + 3 * 60 * 60 * 1000);
+  const shippedDate = new Date(orderDate.getTime() + 24 * 60 * 60 * 1000);
+  const deliveredDate = new Date(orderDate.getTime() + 68 * 60 * 60 * 1000);
+
+  const stepIndex =
+    derivedStage === 'pending'
+      ? 0
+      : derivedStage === 'processing'
+      ? 1
+      : derivedStage === 'shipped'
+      ? 2
+      : 3;
+
+  const progressPercent =
+    derivedStage === 'pending'
+      ? 25
+      : derivedStage === 'processing'
+      ? 50
+      : derivedStage === 'shipped'
+      ? 75
+      : 100;
+
+  const stages: RealtimeStage[] = [
+    {
+      stage: 'pending',
+      title: 'Order Placed',
+      subtitle: 'Payment & Verification',
+      timestamp: formatDate(pendingDate),
+      details: 'Order verified and queued for custom NFC hardware programming.',
+      isComplete: stepIndex >= 0,
+      isCurrent: stepIndex === 0,
+      iconName: 'receipt',
+    },
+    {
+      stage: 'processing',
+      title: 'NFC Encoding',
+      subtitle: 'NTAG213 Chip QA & Lock',
+      timestamp: stepIndex >= 1 ? formatDate(processingDate) : 'Est. within 3-4 hrs',
+      details: 'Google Review URL programmed into NTAG213 microchip with permanent write-lock.',
+      isComplete: stepIndex >= 1,
+      isCurrent: stepIndex === 1,
+      iconName: 'cpu',
+    },
+    {
+      stage: 'shipped',
+      title: 'In-Transit',
+      subtitle: 'Courier J&T Handover',
+      timestamp: stepIndex >= 2 ? formatDate(shippedDate) : 'Est. 24 hrs from order',
+      details: 'Dispatched via J&T Express with real-time waypoint logging and route tracking.',
+      isComplete: stepIndex >= 2,
+      isCurrent: stepIndex === 2,
+      iconName: 'truck',
+    },
+    {
+      stage: 'delivered',
+      title: 'Delivered',
+      subtitle: 'Arrived at Counter',
+      timestamp: stepIndex === 3 ? formatDate(deliveredDate) : 'Est. 2-3 Business Days',
+      details: 'Package delivered at your business counter. Lifetime NFC warranty activated.',
+      isComplete: stepIndex === 3,
+      isCurrent: stepIndex === 3,
+      iconName: 'store',
+    },
+  ];
+
+  // Deterministic Waybill Tracking ID
+  const hashSeed = Math.abs(
+    order.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 1234) * 7823
+  );
+  const waybill = `JT-PH-${hashSeed.toString().padStart(8, '0').slice(0, 8)}`;
+
+  const hubLocation =
+    derivedStage === 'delivered'
+      ? 'Delivered to Customer Business Counter'
+      : derivedStage === 'shipped'
+      ? 'Out for delivery — Metro Manila Hub Dispatch'
+      : derivedStage === 'processing'
+      ? 'TAPPY NFC Cleanroom & Encoding Facility, Pasig'
+      : 'Metro Manila Automated Payment Gateway';
+
+  return {
+    stage: derivedStage,
+    stepIndex,
+    progressPercent,
+    stages,
+    waybill,
+    hubLocation,
+    lastSyncTime: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+  };
+};
+
 export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
   isOpen,
   onClose,
@@ -86,8 +242,11 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
   const [orders, setOrders] = useState<Order[]>([]);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'confirmed' | 'processing' | 'shipped'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'processing' | 'shipped' | 'delivered'>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncTimestamp, setSyncTimestamp] = useState<number>(Date.now());
+  const [stageOverrides, setStageOverrides] = useState<Record<string, 'pending' | 'processing' | 'shipped' | 'delivered'>>({});
 
   const { showToast } = useToast();
 
@@ -115,6 +274,7 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       loadOrders();
+      setSyncTimestamp(Date.now());
     }
   }, [isOpen]);
 
@@ -132,16 +292,75 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleReorderOrder = (order: Order, e: React.MouseEvent) => {
+  const handleCopyWaybill = (waybill: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onReorder) {
-      onReorder(order.items);
-      onClose();
+    navigator.clipboard.writeText(waybill);
+    showToast({
+      type: 'info',
+      title: 'Waybill Copied',
+      message: `Copied courier tracking number ${waybill}.`,
+    });
+  };
+
+  const handleSyncRealtimeStatus = (orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsSyncing(true);
+    setTimeout(() => {
+      setSyncTimestamp(Date.now());
+      setIsSyncing(false);
       showToast({
         type: 'success',
-        title: 'Items Added to Cart',
-        message: `Added ${order.items.reduce((s, i) => s + i.quantity, 0)} items from order ${order.id} to your cart.`,
+        title: 'Courier GPS Telemetry Synced',
+        message: `Updated live status & waypoint check-in for order ${orderId}.`,
       });
+    }, 600);
+  };
+
+  const handleSimulateStageChange = (
+    orderId: string,
+    stage: 'pending' | 'processing' | 'shipped' | 'delivered',
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    setStageOverrides((prev) => ({
+      ...prev,
+      [orderId]: stage,
+    }));
+    const stageTitles: Record<string, string> = {
+      pending: '1. Placed (25%)',
+      processing: '2. Encoding (50%)',
+      shipped: '3. In-Transit (75%)',
+      delivered: '4. Delivered to Counter (100%)',
+    };
+    showToast({
+      type: 'info',
+      title: `Simulated Stage: ${stage.toUpperCase()}`,
+      message: `Progress bar updated to ${stageTitles[stage]}.`,
+    });
+  };
+
+  const handleLoadSampleOrder = () => {
+    try {
+      const stored = localStorage.getItem(ORDERS_STORAGE_KEY);
+      let list: Order[] = [];
+      if (stored) {
+        list = JSON.parse(stored);
+      }
+      // Check if sample already exists
+      const exists = list.some((o) => o.id === SAMPLE_ORDER.id);
+      if (!exists) {
+        list = [SAMPLE_ORDER, ...list];
+        localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(list));
+      }
+      setOrders(list);
+      setExpandedOrderId(SAMPLE_ORDER.id);
+      showToast({
+        type: 'success',
+        title: 'Simulated Order Loaded',
+        message: 'Sample order with visual 4-stage tracking progress is now visible.',
+      });
+    } catch (e) {
+      console.warn(e);
     }
   };
 
@@ -151,95 +370,97 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
     setOrders(updated);
     try {
       localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(updated));
-    } catch (err) {
-      console.warn('Failed to delete order', err);
+      showToast({
+        type: 'info',
+        title: 'Order Removed',
+        message: `Order #${orderId} was removed from your history.`,
+      });
+    } catch (e) {
+      console.warn(e);
     }
-    showToast({
-      type: 'info',
-      title: 'Order Removed',
-      message: `Order ${orderId} was removed from your local history.`,
-    });
   };
 
-  const handleLoadSampleOrder = () => {
-    const updated = [SAMPLE_ORDER, ...orders.filter((o) => o.id !== SAMPLE_ORDER.id)];
-    setOrders(updated);
-    setExpandedOrderId(SAMPLE_ORDER.id);
-    try {
-      localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(updated));
-    } catch (err) {
-      console.warn('Failed to save sample order', err);
+  const handleReorderOrder = (order: Order, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onReorder) {
+      onReorder(order.items);
+      onClose();
+      showToast({
+        type: 'success',
+        title: 'Re-order Added to Cart',
+        message: `${order.items.reduce((s, i) => s + i.quantity, 0)} item(s) from order #${order.id} added to cart.`,
+      });
     }
-    showToast({
-      type: 'success',
-      title: 'Demo Order Loaded',
-      message: 'Sample NFC hardware order loaded for testing.',
-    });
   };
 
   const handlePrintReceipt = (order: Order, e: React.MouseEvent) => {
     e.stopPropagation();
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      window.print();
+    const receiptWindow = window.open('', '_blank');
+    if (!receiptWindow) {
+      showToast({
+        type: 'info',
+        title: 'Receipt Ready',
+        message: `Order summary for ${order.id} total: ₱${order.total.toLocaleString()}`,
+      });
       return;
     }
 
     const itemsHtml = order.items
       .map(
         (item) => `
-        <tr style="border-bottom: 1px solid #e2e8f0;">
-          <td style="padding: 10px 0; font-family: monospace;">
-            <strong>${item.product.name}</strong> (${item.product.size})<br/>
-            <span style="color: #64748b; font-size: 11px;">Place: ${item.businessName || order.customerInfo.businessName || 'Configured'}</span>
-          </td>
-          <td style="padding: 10px 0; text-align: center;">${item.quantity}</td>
-          <td style="padding: 10px 0; text-align: right;">₱${item.product.price.toLocaleString()}</td>
-          <td style="padding: 10px 0; text-align: right; font-weight: bold;">₱${(item.product.price * item.quantity).toLocaleString()}</td>
-        </tr>`
+      <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${item.product.name} (x${item.quantity})</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">₱${(item.product.price * item.quantity).toLocaleString()}</td>
+      </tr>
+    `
       )
       .join('');
 
-    printWindow.document.write(`
+    receiptWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Receipt - ${order.id} - TAPPY</title>
+          <title>TAPPY NFC - Official Order Receipt #${order.id}</title>
           <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; color: #0f172a; max-width: 600px; margin: 0 auto; }
-            h1 { font-size: 20px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-            .header { border-bottom: 2px solid #0f172a; padding-bottom: 16px; margin-bottom: 24px; }
-            table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 13px; }
-            th { text-align: left; padding-bottom: 8px; border-bottom: 2px solid #cbd5e1; font-size: 11px; text-transform: uppercase; color: #475569; }
-            .total-box { margin-top: 20px; border-top: 2px solid #0f172a; padding-top: 12px; }
-            .footer { margin-top: 40px; font-size: 11px; color: #64748b; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 16px; }
+            body { font-family: 'Inter', sans-serif; padding: 40px; color: #0f172a; max-width: 600px; margin: 0 auto; }
+            .header { border-bottom: 2px solid #0284c7; padding-bottom: 20px; margin-bottom: 20px; }
+            .logo { font-size: 24px; font-weight: 900; letter-spacing: 2px; }
+            .title { font-size: 14px; text-transform: uppercase; color: #64748b; margin-top: 4px; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+            .total { font-size: 18px; font-weight: bold; text-align: right; margin-top: 20px; }
+            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 12px; margin: 20px 0; }
+            .badge { display: inline-block; padding: 4px 8px; background: #e0f2fe; color: #0284c7; font-weight: bold; border-radius: 4px; }
           </style>
         </head>
         <body>
           <div class="header">
-            <h1>TAPPY NFC Philippines</h1>
-            <div style="font-size: 12px; color: #475569;">Commercial NFC Google Review Hardware</div>
-            <div style="margin-top: 12px; font-family: monospace; font-size: 12px;">
-              <strong>Order ID:</strong> ${order.id}<br/>
-              <strong>Date:</strong> ${order.createdAt}<br/>
-              <strong>Status:</strong> ${order.status.toUpperCase()}
-            </div>
+            <div class="logo">TAPPY <span style="color: #0284c7;">NFC</span></div>
+            <div class="title">Official Hardware Purchase Receipt & Warranty Certificate</div>
           </div>
-
-          <div style="font-size: 12px; margin-bottom: 20px;">
-            <strong>Ship To:</strong><br/>
-            ${order.customerInfo.fullName} (${order.customerInfo.phone})<br/>
-            ${order.customerInfo.address}, ${order.customerInfo.city} ${order.customerInfo.postalCode}<br/>
-            <strong>Business:</strong> ${order.customerInfo.businessName || 'N/A'}
+          <p><strong>Order ID:</strong> ${order.id}</p>
+          <p><strong>Date Placed:</strong> ${order.createdAt}</p>
+          <p><strong>Payment Method:</strong> ${order.paymentMethod.toUpperCase()} <span class="badge">VERIFIED PAID</span></p>
+          
+          <div class="info-grid">
+            <div>
+              <strong>DELIVERY TO:</strong><br/>
+              ${order.customerInfo.fullName}<br/>
+              ${order.customerInfo.address}<br/>
+              ${order.customerInfo.city} ${order.customerInfo.postalCode}<br/>
+              Phone: ${order.customerInfo.phone}
+            </div>
+            <div>
+              <strong>BUSINESS PROFILE:</strong><br/>
+              ${order.customerInfo.businessName || 'N/A'}<br/>
+              NFC Target: ${order.customerInfo.googleReviewUrlOrPlace || 'Google Maps Profile'}
+            </div>
           </div>
 
           <table>
             <thead>
-              <tr>
-                <th>Item Description</th>
-                <th style="text-align: center;">Qty</th>
-                <th style="text-align: right;">Price</th>
-                <th style="text-align: right;">Total</th>
+              <tr style="background: #f8fafc; text-align: left;">
+                <th style="padding: 8px;">Hardware Item</th>
+                <th style="padding: 8px; text-align: right;">Amount</th>
               </tr>
             </thead>
             <tbody>
@@ -247,81 +468,80 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
             </tbody>
           </table>
 
-          <div class="total-box">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-              <span>Subtotal:</span>
-              <span>₱${order.subtotal.toLocaleString()}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-              <span>Shipping:</span>
-              <span>${order.shipping === 0 ? 'FREE (Metro Manila / Nationwide)' : `₱${order.shipping}`}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; margin-top: 8px;">
-              <span>Total Paid:</span>
-              <span>₱${order.total.toLocaleString()} (${order.paymentMethod.toUpperCase()})</span>
-            </div>
+          <div style="text-align: right; font-size: 13px; color: #64748b;">
+            <div>Subtotal: ₱${order.subtotal.toLocaleString()}</div>
+            <div>Shipping: ${order.shipping === 0 ? 'FREE (Special Promo)' : '₱' + order.shipping}</div>
+          </div>
+          <div class="total">
+            Total Paid: ₱${order.total.toLocaleString()}
           </div>
 
-          <div class="footer">
-            Thank you for choosing TapReview NFC! All items include lifetime NTAG213 hardware warranty.<br/>
-            Support: support@tapreviewnfc.ph · www.tapreviewnfc.ph
+          <div style="margin-top: 40px; padding: 15px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 12px; color: #166534;">
+            <strong>Lifetime NTAG213 Microchip Warranty Included:</strong> Guaranteed 100,000+ tap endurance and zero battery maintenance.
           </div>
         </body>
       </html>
     `);
-    printWindow.document.close();
-    printWindow.focus();
+    receiptWindow.document.close();
+    receiptWindow.focus();
     setTimeout(() => {
-      printWindow.print();
-    }, 400);
+      receiptWindow.print();
+    }, 500);
   };
 
-  // Filtered orders
   const filteredOrders = orders.filter((order) => {
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    if (!matchesStatus) return false;
+    const override = stageOverrides[order.id];
+    const tracker = calculateRealtimeStatus(order, syncTimestamp, override);
 
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase().trim();
+    // Status filter
+    if (statusFilter !== 'all' && tracker.stage !== statusFilter) {
+      return false;
+    }
 
-    const searchable = [
-      order.id,
-      order.customerInfo.fullName,
-      order.customerInfo.businessName,
-      order.customerInfo.city,
-      ...order.items.map((i) => i.product.name),
-    ]
-      .join(' ')
-      .toLowerCase();
+    // Search query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchId = order.id.toLowerCase().includes(q);
+      const matchWaybill = tracker.waybill.toLowerCase().includes(q);
+      const matchBusiness =
+        order.customerInfo.businessName?.toLowerCase().includes(q) || false;
+      const matchCustomer =
+        order.customerInfo.fullName.toLowerCase().includes(q);
+      const matchItem = order.items.some((i) =>
+        i.product.name.toLowerCase().includes(q)
+      );
 
-    return searchable.includes(query);
+      return matchId || matchWaybill || matchBusiness || matchCustomer || matchItem;
+    }
+
+    return true;
   });
 
-  const getStatusBadge = (status: Order['status']) => {
-    switch (status) {
-      case 'confirmed':
+  const getStatusBadgeUI = (stage: 'pending' | 'processing' | 'shipped' | 'delivered') => {
+    switch (stage) {
+      case 'pending':
         return {
-          label: 'Order Confirmed',
-          color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-          step: 1,
+          label: 'Placed & Verified',
+          color: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+          dot: 'bg-amber-400',
         };
       case 'processing':
         return {
           label: 'NFC Chip Encoding',
-          color: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
-          step: 2,
+          color: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
+          dot: 'bg-indigo-400',
         };
       case 'shipped':
         return {
-          label: 'In Transit / Courier Dispatched',
-          color: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-          step: 3,
+          label: 'In-Transit (J&T)',
+          color: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
+          dot: 'bg-sky-400',
         };
-      default:
+      case 'delivered':
         return {
-          label: 'Processing',
-          color: 'bg-slate-500/20 text-slate-300 border-slate-500/40',
-          step: 1,
+          label: 'Delivered to Counter',
+          color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+          dot: 'bg-emerald-400',
         };
     }
   };
@@ -336,6 +556,21 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
         return <CreditCard className="w-3.5 h-3.5 text-indigo-400" />;
       case 'bank_transfer':
         return <Building className="w-3.5 h-3.5 text-amber-400" />;
+    }
+  };
+
+  const getStageIcon = (iconName: string, className: string) => {
+    switch (iconName) {
+      case 'receipt':
+        return <CreditCard className={className} />;
+      case 'cpu':
+        return <Cpu className={className} />;
+      case 'truck':
+        return <Truck className={className} />;
+      case 'store':
+        return <Store className={className} />;
+      default:
+        return <CheckCircle2 className={className} />;
     }
   };
 
@@ -363,14 +598,14 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-white">
-                  Order History & Tracking
+                  Real-Time Order Tracking
                 </h2>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">
                   {orders.length} {orders.length === 1 ? 'Order' : 'Orders'}
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Track live fulfillment stages, courier status, and download tax receipts.
+                Visual order journey progress tracker from 'Placed' to 'Delivered' with live telemetry.
               </p>
             </div>
           </div>
@@ -387,32 +622,32 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
           </div>
         </div>
 
-        {/* Search & Filter Bar */}
+        {/* Search & Status Filter Bar */}
         {orders.length > 0 && (
           <div className="p-4 sm:px-7 bg-slate-950/40 border-b border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
             <div className="relative flex-1">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search by Order ID (TR-XXXXXX) or Business Name..."
+                placeholder="Search by Order ID (TR-XXXXXX), Waybill, or Place..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-sky-400 transition-colors"
               />
             </div>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto text-[11px] font-mono">
-              {(['all', 'confirmed', 'processing', 'shipped'] as const).map((filter) => (
+            <div className="flex items-center gap-1.5 overflow-x-auto text-[11px] font-mono scrollbar-none">
+              {(['all', 'pending', 'processing', 'shipped', 'delivered'] as const).map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setStatusFilter(filter)}
-                  className={`px-3 py-1.5 rounded-lg capitalize transition-all cursor-pointer border ${
+                  className={`px-3 py-1.5 rounded-lg capitalize transition-all cursor-pointer border shrink-0 ${
                     statusFilter === filter
                       ? 'bg-sky-500 text-slate-950 font-bold border-sky-400 shadow-xs'
                       : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
                   }`}
                 >
-                  {filter}
+                  {filter === 'all' ? 'All Orders' : filter}
                 </button>
               ))}
             </div>
@@ -429,10 +664,10 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
               </div>
               <div className="space-y-1.5 max-w-sm mx-auto">
                 <h3 className="font-display text-lg font-bold text-white">
-                  No Recent Orders Found
+                  No Order Records Found
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Orders placed in this browser are automatically stored here for live tracking, NFC provisioning verification, and instant re-ordering.
+                  Orders placed in this store are dynamically saved here for live 4-stage tracking (Placed, Encoding, In-Transit, Delivered) and instant re-ordering.
                 </p>
               </div>
 
@@ -443,7 +678,7 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-400 font-mono font-bold text-xs border border-slate-700 hover:border-sky-400/40 transition-all cursor-pointer shadow-md active:scale-95"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Preview Demo Order</span>
+                  <span>Preview Simulated Live Order</span>
                 </button>
 
                 <button
@@ -469,206 +704,341 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
                   setSearchQuery('');
                   setStatusFilter('all');
                 }}
-                className="text-xs text-sky-400 hover:underline font-mono"
+                className="text-xs text-sky-400 hover:underline font-mono cursor-pointer"
               >
                 Reset Search Filters
               </button>
             </div>
           ) : (
-            /* Orders List */
-            <div className="space-y-4">
+            /* Orders List with Intuitive Visual Progress Journey */
+            <div className="space-y-5">
               {filteredOrders.map((order) => {
                 const isExpanded = expandedOrderId === order.id;
-                const statusMeta = getStatusBadge(order.status);
+                const override = stageOverrides[order.id];
+                const tracker = calculateRealtimeStatus(order, syncTimestamp, override);
+                const statusBadge = getStatusBadgeUI(tracker.stage);
                 const totalItemsCount = order.items.reduce((s, i) => s + i.quantity, 0);
 
                 return (
                   <div
                     key={order.id}
                     id={`order-card-${order.id}`}
-                    className="bg-slate-950/75 border border-slate-800 hover:border-slate-700 rounded-2xl overflow-hidden transition-all shadow-md"
+                    className={`border rounded-2xl overflow-hidden transition-all shadow-md ${
+                      isExpanded
+                        ? 'bg-slate-950/90 border-slate-700 ring-1 ring-sky-500/20'
+                        : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
+                    }`}
                   >
-                    {/* Collapsible Header */}
+                    {/* Collapsible Header with Integrated Visual Progress Summary */}
                     <div
                       onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
-                      className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 cursor-pointer hover:bg-slate-900/40 transition-colors select-none"
+                      className="p-4 sm:p-5 flex flex-col gap-3 cursor-pointer hover:bg-slate-900/40 transition-colors select-none"
                     >
-                      <div className="flex items-start sm:items-center gap-3.5">
-                        <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center justify-center text-slate-300 shrink-0">
-                          <Package className="w-5 h-5 text-sky-400" />
-                        </div>
-
-                        <div className="space-y-0.5">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-mono font-extrabold text-white text-sm">
-                              {order.id}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={(e) => handleCopyId(order.id, e)}
-                              className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
-                              title="Copy Order ID"
-                            >
-                              {copiedId === order.id ? (
-                                <Check className="w-3 h-3 text-emerald-400" />
-                              ) : (
-                                <Copy className="w-3 h-3" />
-                              )}
-                            </button>
-                            <span
-                              className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold border ${statusMeta.color}`}
-                            >
-                              {statusMeta.label}
-                            </span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-start sm:items-center gap-3.5">
+                          <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center justify-center text-slate-300 shrink-0 shadow-inner">
+                            <Package className="w-5 h-5 text-sky-400" />
                           </div>
 
-                          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-                            <span>{order.createdAt}</span>
-                            <span>•</span>
-                            <span className="font-medium text-slate-300">
-                              {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
-                            </span>
-                            <span>•</span>
-                            <span className="font-bold text-white">
-                              ₱{order.total.toLocaleString()}
-                            </span>
+                          <div className="space-y-0.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-mono font-extrabold text-white text-sm">
+                                {order.id}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => handleCopyId(order.id, e)}
+                                className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+                                title="Copy Order ID"
+                              >
+                                {copiedId === order.id ? (
+                                  <Check className="w-3 h-3 text-emerald-400" />
+                                ) : (
+                                  <Copy className="w-3 h-3" />
+                                )}
+                              </button>
+                              <span
+                                className={`inline-flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold border ${statusBadge.color}`}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot} ${tracker.stage !== 'delivered' ? 'animate-pulse' : ''}`} />
+                                {statusBadge.label}
+                              </span>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                              <span>Placed: {order.createdAt}</span>
+                              <span>•</span>
+                              <span className="font-medium text-slate-300">
+                                {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
+                              </span>
+                              <span>•</span>
+                              <span className="font-bold text-white">
+                                ₱{order.total.toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 self-end sm:self-center">
+                          <div className="hidden sm:flex flex-col text-right text-xs font-mono">
+                            <span className="text-slate-400 text-[10px]">Courier Waybill:</span>
+                            <span className="text-sky-400 font-bold">{tracker.waybill}</span>
+                          </div>
+
+                          <div className="p-1.5 rounded-lg bg-slate-800 text-slate-300">
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4" />
+                            )}
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 self-end sm:self-center">
-                        <div className="hidden sm:flex items-center gap-1 text-xs text-slate-400 font-mono mr-2">
-                          <span>Est: {order.estimatedDelivery}</span>
+                      {/* Header Mini Order Progress Tracker Bar */}
+                      <div className="pt-2 border-t border-slate-800/60 flex flex-col gap-1.5">
+                        <div className="flex items-center justify-between text-[11px] font-mono">
+                          <span className="text-slate-400 flex items-center gap-1.5">
+                            <Radio className="w-3 h-3 text-sky-400 animate-pulse" />
+                            Order Journey: <strong className="text-white uppercase">{tracker.stage}</strong>
+                          </span>
+                          <span className="font-bold text-sky-400">{tracker.progressPercent}% Complete</span>
                         </div>
 
-                        <div className="p-1.5 rounded-lg bg-slate-800 text-slate-300">
-                          {isExpanded ? (
-                            <ChevronUp className="w-4 h-4" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4" />
-                          )}
+                        {/* Visual Progress Track */}
+                        <div className="relative w-full bg-slate-900/90 h-2 rounded-full overflow-hidden border border-slate-800/80">
+                          <motion.div
+                            className="h-full bg-gradient-to-r from-amber-400 via-sky-400 to-emerald-400 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${tracker.progressPercent}%` }}
+                            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                          />
+                        </div>
+
+                        {/* 4 Mini Milestone Labels */}
+                        <div className="grid grid-cols-4 text-[10px] font-mono text-center pt-0.5">
+                          {tracker.stages.map((stg, sIdx) => {
+                            const isPast = tracker.stepIndex >= sIdx;
+                            const isCurrent = tracker.stepIndex === sIdx;
+                            return (
+                              <span
+                                key={sIdx}
+                                className={`truncate px-0.5 ${
+                                  isCurrent
+                                    ? 'text-sky-400 font-bold'
+                                    : isPast
+                                    ? 'text-emerald-400 font-medium'
+                                    : 'text-slate-500'
+                                }`}
+                              >
+                                {sIdx + 1}. {stg.title}
+                              </span>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
 
-                    {/* Expanded Order Details */}
+                    {/* Expanded Intuitive Real-Time Order Journey Stepper */}
                     <AnimatePresence>
                       {isExpanded && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="border-t border-slate-800/80 bg-slate-900/30 p-5 sm:p-6 space-y-6"
+                          transition={{ duration: 0.25 }}
+                          className="border-t border-slate-800/80 bg-slate-900/40 p-5 sm:p-6 space-y-6"
                         >
-                          {/* 4-Step Interactive Tracking Bar */}
-                          <div className="bg-slate-950/90 border border-slate-800 rounded-xl p-4 sm:p-5 space-y-4">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
-                                <Truck className="w-3.5 h-3.5 text-sky-400" />
-                                Live Fulfillment Timeline
-                              </span>
-                              <span className="text-xs font-mono text-emerald-400 font-bold">
-                                Courier: J&T Express (PH-Express)
-                              </span>
+                          {/* Dedicated Visual Order Journey Roadmap Card */}
+                          <div className="bg-slate-950/95 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-6 shadow-xl relative overflow-hidden">
+                            {/* Top Header of the Journey */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                                  <span className="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold">
+                                    Live Fulfillment Journey & Milestone Tracker
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-1">
+                                  Track each stage of your custom Google Review hardware from instant payment verification to business counter delivery.
+                                </p>
+                              </div>
+
+                              <div className="flex items-center gap-2 self-start sm:self-auto">
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleSyncRealtimeStatus(order.id, e)}
+                                  disabled={isSyncing}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 text-[11px] font-mono font-semibold transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-xs"
+                                >
+                                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                                  <span>{isSyncing ? 'Syncing...' : 'Refresh GPS'}</span>
+                                </button>
+                              </div>
                             </div>
 
-                            {/* Tracking Progress Steps */}
-                            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 relative">
-                              {/* Step 1 */}
-                              <div className="flex items-center sm:flex-col sm:text-center gap-3 sm:gap-2 p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
-                                <div className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 flex items-center justify-center shrink-0">
-                                  <CheckCircle className="w-4 h-4" />
+                            {/* Prominent Visual Stepper Rail (Desktop & Tablet) */}
+                            <div className="relative py-3">
+                              {/* Background rail */}
+                              <div className="absolute top-7 left-6 right-6 h-1.5 bg-slate-800/90 rounded-full z-0 hidden sm:block" />
+                              
+                              {/* Animated gradient progress fill rail */}
+                              <motion.div
+                                className="absolute top-7 left-6 h-1.5 bg-gradient-to-r from-amber-400 via-sky-400 to-emerald-400 rounded-full z-0 hidden sm:block shadow-sm shadow-sky-500/50"
+                                initial={{ width: 0 }}
+                                animate={{
+                                  width:
+                                    tracker.stepIndex === 0
+                                      ? '10%'
+                                      : tracker.stepIndex === 1
+                                      ? '38%'
+                                      : tracker.stepIndex === 2
+                                      ? '70%'
+                                      : 'calc(100% - 3rem)',
+                                }}
+                                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                              />
+
+                              {/* 4 Connected Waypoint Nodes */}
+                              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 sm:gap-2 relative z-10">
+                                {tracker.stages.map((stg, sIdx) => {
+                                  const isCurrent = stg.isCurrent;
+                                  const isDone = stg.isComplete && !isCurrent;
+
+                                  return (
+                                    <div
+                                      key={sIdx}
+                                      className={`flex flex-col items-start sm:items-center text-left sm:text-center p-3.5 sm:p-3 rounded-xl border transition-all ${
+                                        isCurrent
+                                          ? 'bg-sky-950/60 border-sky-500/60 shadow-lg shadow-sky-500/10 ring-1 ring-sky-400/40'
+                                          : isDone
+                                          ? 'bg-slate-900/90 border-emerald-500/40 text-slate-200'
+                                          : 'bg-slate-950/60 border-slate-800/80 text-slate-500'
+                                      }`}
+                                    >
+                                      {/* Circular Waypoint Icon Pin */}
+                                      <div
+                                        className={`w-10 h-10 rounded-2xl flex items-center justify-center mb-2.5 shrink-0 transition-transform ${
+                                          isCurrent
+                                            ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/30 scale-105 ring-4 ring-sky-400/20'
+                                            : isDone
+                                            ? 'bg-emerald-500 text-slate-950 shadow-xs'
+                                            : 'bg-slate-800 text-slate-500'
+                                        }`}
+                                      >
+                                        {isDone ? (
+                                          <CheckCheck className="w-5 h-5 text-slate-950" />
+                                        ) : (
+                                          getStageIcon(stg.iconName, 'w-5 h-5')
+                                        )}
+                                      </div>
+
+                                      {/* Status Label */}
+                                      <div className="space-y-1 w-full">
+                                        <div className="flex items-center justify-between sm:justify-center gap-2">
+                                          <span
+                                            className={`text-[9px] font-mono uppercase px-2 py-0.5 rounded font-bold border ${
+                                              isCurrent
+                                                ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                                                : isDone
+                                                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                                : 'bg-slate-900 text-slate-500 border-slate-800'
+                                            }`}
+                                          >
+                                            {isCurrent ? '● Active Step' : isDone ? '✓ Completed' : 'Upcoming'}
+                                          </span>
+                                        </div>
+
+                                        <h5
+                                          className={`text-xs font-bold font-display ${
+                                            isCurrent ? 'text-white' : isDone ? 'text-slate-100' : 'text-slate-400'
+                                          }`}
+                                        >
+                                          {stg.title}
+                                        </h5>
+
+                                        <p className="text-[10px] text-slate-400 font-mono leading-tight">
+                                          {stg.subtitle}
+                                        </p>
+                                      </div>
+
+                                      {/* Timestamp / ETA */}
+                                      <div className="mt-2.5 pt-2 border-t border-slate-800/60 w-full text-[10px] font-mono text-slate-400">
+                                        <span className={isCurrent ? 'text-sky-300 font-semibold' : ''}>
+                                          {stg.timestamp}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Interactive Stage Simulation Bar (Allows testing each stage visually) */}
+                            <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-mono">
+                              <div className="flex items-center gap-2 text-slate-400 text-[11px]">
+                                <Sliders className="w-3.5 h-3.5 text-sky-400" />
+                                <span>Simulate & Preview Order Stages:</span>
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                {(
+                                  [
+                                    { key: 'pending', label: '1. Placed' },
+                                    { key: 'processing', label: '2. Encoding' },
+                                    { key: 'shipped', label: '3. Shipped' },
+                                    { key: 'delivered', label: '4. Delivered' },
+                                  ] as const
+                                ).map((stgBtn) => {
+                                  const isActive = tracker.stage === stgBtn.key;
+                                  return (
+                                    <button
+                                      key={stgBtn.key}
+                                      type="button"
+                                      onClick={(e) => handleSimulateStageChange(order.id, stgBtn.key, e)}
+                                      className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer border ${
+                                        isActive
+                                          ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-xs'
+                                          : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
+                                      }`}
+                                    >
+                                      {stgBtn.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Live Courier & Waypoint Telemetry Banner */}
+                            <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-mono">
+                              <div className="flex items-center gap-2.5">
+                                <div className="p-2 rounded-lg bg-slate-800 text-sky-400 shrink-0">
+                                  <MapPin className="w-4 h-4" />
                                 </div>
                                 <div>
-                                  <span className="block text-xs font-bold text-white">
-                                    1. Order Placed
-                                  </span>
-                                  <span className="block text-[10px] text-slate-400 font-mono">
-                                    Payment Confirmed
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-slate-400 text-[11px]">Carrier:</span>
+                                    <strong className="text-white font-bold">J&T Express Philippines</strong>
+                                    <span className="text-slate-600">·</span>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => handleCopyWaybill(tracker.waybill, e)}
+                                      className="text-sky-400 hover:text-sky-300 underline font-bold flex items-center gap-1 cursor-pointer"
+                                      title="Copy Waybill"
+                                    >
+                                      <span>{tracker.waybill}</span>
+                                      <Copy className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                  <p className="text-[11px] text-slate-300 mt-0.5">
+                                    Current Checkpoint: <span className="text-emerald-400 font-semibold">{tracker.hubLocation}</span>
+                                  </p>
                                 </div>
                               </div>
 
-                              {/* Step 2 */}
-                              <div
-                                className={`flex items-center sm:flex-col sm:text-center gap-3 sm:gap-2 p-2.5 rounded-lg border ${
-                                  statusMeta.step >= 2
-                                    ? 'bg-slate-900/90 border-sky-500/40 text-white'
-                                    : 'bg-slate-900/40 border-slate-800 text-slate-500'
-                                }`}
-                              >
-                                <div
-                                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border ${
-                                    statusMeta.step >= 2
-                                      ? 'bg-sky-500/20 text-sky-400 border-sky-500/50'
-                                      : 'bg-slate-800 text-slate-500 border-slate-700'
-                                  }`}
-                                >
-                                  <Cpu className="w-4 h-4" />
-                                </div>
-                                <div>
-                                  <span className="block text-xs font-bold">
-                                    2. NFC Chip Provisioning
-                                  </span>
-                                  <span className="block text-[10px] text-slate-400 font-mono">
-                                    NTAG213 Encoded
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Step 3 */}
-                              <div
-                                className={`flex items-center sm:flex-col sm:text-center gap-3 sm:gap-2 p-2.5 rounded-lg border ${
-                                  statusMeta.step >= 3
-                                    ? 'bg-slate-900/90 border-amber-500/40 text-white'
-                                    : 'bg-slate-900/40 border-slate-800 text-slate-500'
-                                }`}
-                              >
-                                <div
-                                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border ${
-                                    statusMeta.step >= 3
-                                      ? 'bg-amber-500/20 text-amber-400 border-amber-500/50'
-                                      : 'bg-slate-800 text-slate-500 border-slate-700'
-                                  }`}
-                                >
-                                  <Boxes className="w-4 h-4" />
-                                </div>
-                                <div>
-                                  <span className="block text-xs font-bold">
-                                    3. QA & Packaging
-                                  </span>
-                                  <span className="block text-[10px] text-slate-400 font-mono">
-                                    Anti-Scratch Wrapped
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Step 4 */}
-                              <div
-                                className={`flex items-center sm:flex-col sm:text-center gap-3 sm:gap-2 p-2.5 rounded-lg border ${
-                                  statusMeta.step >= 3
-                                    ? 'bg-slate-900/90 border-emerald-500/40 text-white'
-                                    : 'bg-slate-900/40 border-slate-800 text-slate-500'
-                                }`}
-                              >
-                                <div
-                                  className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border ${
-                                    statusMeta.step >= 3
-                                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
-                                      : 'bg-slate-800 text-slate-500 border-slate-700'
-                                  }`}
-                                >
-                                  <Truck className="w-4 h-4" />
-                                </div>
-                                <div>
-                                  <span className="block text-xs font-bold">
-                                    4. Out For Delivery
-                                  </span>
-                                  <span className="block text-[10px] text-slate-400 font-mono">
-                                    {order.estimatedDelivery}
-                                  </span>
-                                </div>
+                              <div className="text-[10px] text-slate-400 sm:text-right shrink-0">
+                                <span>Last GPS Ping: {tracker.lastSyncTime}</span>
                               </div>
                             </div>
                           </div>

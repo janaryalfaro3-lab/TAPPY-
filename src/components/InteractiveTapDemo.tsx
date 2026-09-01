@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Radio, Star, Check, RotateCcw, X } from 'lucide-react';
+import { Radio, Star, Check, RotateCcw, X, ArrowLeft } from 'lucide-react';
 import { ProductMockup } from './ProductMockup';
 
 interface InteractiveTapDemoProps {
@@ -13,6 +13,16 @@ export const InteractiveTapDemo: React.FC<InteractiveTapDemoProps> = ({ isOpen, 
   const [isTapping, setIsTapping] = useState(false);
   const [selectedStars, setSelectedStars] = useState(5);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -32,20 +42,26 @@ export const InteractiveTapDemo: React.FC<InteractiveTapDemoProps> = ({ isOpen, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-slate-950/85 backdrop-blur-md">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-slate-950/85 backdrop-blur-md"
+      onClick={onClose}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         className="relative w-full max-w-2xl bg-slate-900 border border-slate-700/80 shadow-2xl rounded-3xl overflow-hidden p-6 md:p-8 space-y-6 text-white ring-1 ring-white/10"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
+        {/* Prominent Close / Exit Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
+          className="absolute top-4 right-4 px-3 py-1.5 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-sm"
+          aria-label="Exit Simulator"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
+          <span>Exit</span>
         </button>
 
         <div className="text-center space-y-2">
@@ -183,9 +199,10 @@ export const InteractiveTapDemo: React.FC<InteractiveTapDemoProps> = ({ isOpen, 
           <span>iPhone iOS 13+ & Android 5.0+ Supported</span>
           <button
             onClick={onClose}
-            className="text-sky-400 hover:text-white transition-colors cursor-pointer font-medium"
+            className="text-sky-400 hover:text-white transition-colors cursor-pointer font-medium flex items-center gap-1"
           >
-            Close
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Exit Simulator</span>
           </button>
         </div>
       </motion.div>

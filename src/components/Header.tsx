@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Menu, X, Heart, Truck } from 'lucide-react';
+import { ShoppingBag, Menu, X, Heart, Truck, Moon, Sparkles, Sliders, Database } from 'lucide-react';
 import { CartItem } from '../types';
 import { useWishlist } from '../context/WishlistContext';
+import { useTheme } from '../context/ThemeContext';
+import { useToast } from './ToastProvider';
 
 interface HeaderProps {
   cartItems: CartItem[];
   onOpenCart: () => void;
   onOpenWishlist: () => void;
   onOpenOrderHistory: () => void;
+  onOpenAdminOrders?: () => void;
   onNavigateToProducts: () => void;
   onNavigateToHowItWorks: () => void;
   onNavigateToReviews?: () => void;
   onNavigateToImpact?: () => void;
-  onNavigateToMaterials: () => void;
   onNavigateToFaqs: () => void;
 }
 
@@ -21,19 +23,34 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCart,
   onOpenWishlist,
   onOpenOrderHistory,
+  onOpenAdminOrders,
   onNavigateToProducts,
   onNavigateToHowItWorks,
   onNavigateToReviews,
   onNavigateToImpact,
-  onNavigateToMaterials,
   onNavigateToFaqs,
 }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { wishlistCount } = useWishlist();
+  const { themeVariant, toggleThemeVariant } = useTheme();
+  const { showToast } = useToast();
 
   const totalItemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+
+  const handleToggleTheme = () => {
+    toggleThemeVariant();
+    const nextVariant = themeVariant === 'deep-midnight' ? 'Soft Slate' : 'Deep Midnight';
+    showToast({
+      type: 'info',
+      title: `Theme: ${nextVariant}`,
+      message:
+        nextVariant === 'Soft Slate'
+          ? 'Switched to Soft Slate dark mode (calm slate tones)'
+          : 'Switched to Deep Midnight dark mode (high-contrast obsidian black)',
+    });
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -107,13 +124,6 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
           <button
-            id="nav-materials-btn"
-            onClick={onNavigateToMaterials}
-            className="hover:text-sky-400 transition-all cursor-pointer py-1 active:scale-95 hover:-translate-y-0.5"
-          >
-            Materials
-          </button>
-          <button
             id="nav-faqs-btn"
             onClick={onNavigateToFaqs}
             className="hover:text-sky-400 transition-all cursor-pointer py-1 active:scale-95 hover:-translate-y-0.5"
@@ -122,8 +132,45 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </nav>
 
-        {/* Right Action Controls: Orders + Wishlist + Cart + Shop Now */}
+        {/* Right Action Controls: Dark Variant Toggle + Orders + Wishlist + Cart + Shop Now */}
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Subtle Dark Mode Variant Preference Toggle */}
+          <button
+            id="theme-dark-variant-toggle-btn"
+            type="button"
+            onClick={handleToggleTheme}
+            className={`relative px-2.5 sm:px-3 py-2 border rounded-xl transition-all flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-semibold cursor-pointer shadow-xs active:scale-95 group backdrop-blur-md ${
+              themeVariant === 'deep-midnight'
+                ? 'border-indigo-500/40 bg-slate-900/80 hover:bg-slate-800 text-indigo-300'
+                : 'border-sky-500/40 bg-slate-800/80 hover:bg-slate-700 text-sky-300'
+            }`}
+            aria-label="Toggle Dark Mode Variant (Deep Midnight vs Soft Slate)"
+            title={`Current: ${themeVariant === 'deep-midnight' ? 'Deep Midnight' : 'Soft Slate'} — Click to switch`}
+          >
+            {themeVariant === 'deep-midnight' ? (
+              <Moon className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5 text-sky-400 group-hover:scale-110 transition-transform" />
+            )}
+            <span className="hidden xl:inline font-mono text-[10px] font-bold">
+              {themeVariant === 'deep-midnight' ? 'Midnight' : 'Slate'}
+            </span>
+          </button>
+
+          {/* Database / Admin Orders Trigger */}
+          {onOpenAdminOrders && (
+            <button
+              id="admin-db-trigger-btn"
+              onClick={onOpenAdminOrders}
+              className="relative px-2.5 sm:px-3 py-2 border border-indigo-500/40 hover:border-indigo-400 bg-indigo-950/30 hover:bg-indigo-900/40 text-indigo-300 transition-all flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-semibold cursor-pointer shadow-xs active:scale-95 group backdrop-blur-md rounded-xl"
+              aria-label="Firebase Orders Database"
+              title="View Firebase Firestore Orders & Email Dispatch (jaesthetic.info@gmail.com)"
+            >
+              <Database className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+              <span className="hidden lg:inline font-bold">Admin DB</span>
+            </button>
+          )}
+
           {/* Orders Tracking Trigger */}
           <button
             id="orders-tracking-trigger-btn"
@@ -201,6 +248,46 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-slate-950/95 backdrop-blur-2xl border-b border-slate-800 px-6 py-6 space-y-4 shadow-2xl">
+          {/* Theme Variant Toggle in Mobile Drawer */}
+          <button
+            id="mobile-theme-toggle-btn"
+            type="button"
+            onClick={() => {
+              handleToggleTheme();
+            }}
+            className="flex items-center justify-between w-full py-2.5 px-3 bg-slate-900/90 rounded-xl border border-slate-800 text-[12px] uppercase tracking-wider font-semibold text-slate-200 font-mono"
+          >
+            <div className="flex items-center gap-2">
+              {themeVariant === 'deep-midnight' ? (
+                <Moon className="w-4 h-4 text-indigo-400" />
+              ) : (
+                <Sparkles className="w-4 h-4 text-sky-400" />
+              )}
+              <span>Theme: {themeVariant === 'deep-midnight' ? 'Deep Midnight' : 'Soft Slate'}</span>
+            </div>
+            <span className="text-[10px] text-sky-400 font-bold bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
+              Tap to switch
+            </span>
+          </button>
+
+          {/* Firebase Database link in mobile drawer */}
+          {onOpenAdminOrders && (
+            <button
+              id="mobile-nav-admin-db-btn"
+              onClick={() => {
+                onOpenAdminOrders();
+                setMobileMenuOpen(false);
+              }}
+              className="flex items-center justify-between w-full py-2.5 px-3 bg-indigo-950/40 rounded-xl border border-indigo-500/40 text-[12px] uppercase tracking-wider font-semibold text-indigo-300 font-mono"
+            >
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4 text-indigo-400" />
+                <span>Firebase Admin Database</span>
+              </div>
+              <span className="text-[10px] text-emerald-400 font-mono font-bold">jaesthetic.info</span>
+            </button>
+          )}
+
           {/* Orders Tracking quick link in mobile drawer */}
           <button
             id="mobile-nav-orders-btn"
@@ -264,7 +351,7 @@ export const Header: React.FC<HeaderProps> = ({
               }}
               className="block w-full text-left py-2 text-[12px] uppercase tracking-wider font-semibold text-slate-200 hover:text-sky-400 transition-colors font-mono"
             >
-              Impact & Metrics
+              Impact
             </button>
           )}
           {onNavigateToReviews && (
@@ -276,19 +363,9 @@ export const Header: React.FC<HeaderProps> = ({
               }}
               className="block w-full text-left py-2 text-[12px] uppercase tracking-wider font-semibold text-slate-200 hover:text-sky-400 transition-colors font-mono"
             >
-              Reviews & Stories
+              Reviews
             </button>
           )}
-          <button
-            id="mobile-nav-materials-btn"
-            onClick={() => {
-              onNavigateToMaterials();
-              setMobileMenuOpen(false);
-            }}
-            className="block w-full text-left py-2 text-[12px] uppercase tracking-wider font-semibold text-slate-200 hover:text-sky-400 transition-colors font-mono"
-          >
-            Materials
-          </button>
           <button
             id="mobile-nav-faqs-btn"
             onClick={() => {
@@ -306,7 +383,7 @@ export const Header: React.FC<HeaderProps> = ({
               onNavigateToProducts();
               setMobileMenuOpen(false);
             }}
-            className="w-full py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-950 bg-white hover:bg-sky-50 text-center block transition-colors mt-2 rounded-xl shadow-lg"
+            className="w-full py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-950 bg-white hover:bg-sky-50 text-center block transition-colors mt-2 rounded-xl shadow-lg cursor-pointer"
           >
             Shop Now
           </button>

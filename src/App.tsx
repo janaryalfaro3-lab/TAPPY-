@@ -17,7 +17,6 @@ import { ProductDetailModal } from './components/ProductDetailModal';
 import { HowItWorksSection } from './components/HowItWorksSection';
 import { NumbersThatMatterSection } from './components/NumbersThatMatterSection';
 import { CustomerTestimonials } from './components/CustomerTestimonials';
-import { BeautySection } from './components/BeautySection';
 import { FAQSection } from './components/FAQSection';
 import { CartDrawer } from './components/CartDrawer';
 import { CheckoutModal } from './components/CheckoutModal';
@@ -29,14 +28,17 @@ import { Footer } from './components/Footer';
 import { PolicyModal, PolicyType } from './components/PolicyModal';
 import { ToastProvider, useToast } from './components/ToastProvider';
 import { WishlistProvider } from './context/WishlistContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { WishlistModal } from './components/WishlistModal';
 import { OrderHistoryModal } from './components/OrderHistoryModal';
+import { AdminOrdersModal } from './components/AdminOrdersModal';
 
 function StorefrontApp() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
+  const [isAdminOrdersOpen, setIsAdminOrdersOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
@@ -44,7 +46,28 @@ function StorefrontApp() {
   const [activePolicy, setActivePolicy] = useState<PolicyType | null>(null);
   const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
 
+  const { themeVariant } = useTheme();
   const { showCartToast, showToast } = useToast();
+
+  // Check URL query param for shared product link (e.g. ?product=acrylic-stand)
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const productId = params.get('product');
+      if (productId) {
+        const found = PRODUCTS.find((p) => p.id === productId);
+        if (found) {
+          setSelectedProduct(found);
+          setTimeout(() => {
+            const el = document.getElementById('products-section');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }, 300);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not read product URL param', e);
+    }
+  }, []);
 
   // Cart Handlers
   const handleAddToCart = (
@@ -150,17 +173,10 @@ function StorefrontApp() {
     }
   };
 
-  const handleSelectMaterialProduct = (productId: string) => {
-    const found = PRODUCTS.find((p) => p.id === productId);
-    if (found) {
-      setSelectedProduct(found);
-    } else {
-      scrollToSection('products-section');
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-sky-500/30 selection:text-sky-200 font-sans antialiased relative">
+    <div className={`min-h-screen text-slate-100 flex flex-col selection:bg-sky-500/30 selection:text-sky-200 font-sans antialiased relative transition-colors duration-300 ${
+      themeVariant === 'deep-midnight' ? 'bg-slate-950 theme-deep-midnight' : 'bg-slate-900 theme-soft-slate'
+    }`}>
       {/* 0. Full Website 3D NFC Background & Electromagnetic Field */}
       <FullSiteNfcBackground3D />
 
@@ -173,11 +189,11 @@ function StorefrontApp() {
         onOpenCart={() => setIsCartOpen(true)}
         onOpenWishlist={() => setIsWishlistOpen(true)}
         onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
+        onOpenAdminOrders={() => setIsAdminOrdersOpen(true)}
         onNavigateToProducts={() => scrollToSection('products-section')}
         onNavigateToHowItWorks={() => scrollToSection('how-it-works-section')}
         onNavigateToImpact={() => scrollToSection('numbers-that-matter-section')}
         onNavigateToReviews={() => scrollToSection('testimonials-section')}
-        onNavigateToMaterials={() => scrollToSection('materials-section')}
         onNavigateToFaqs={() => scrollToSection('faqs-section')}
       />
 
@@ -210,16 +226,10 @@ function StorefrontApp() {
         {/* 7. Customer Testimonials Carousel with Background Video */}
         <CustomerTestimonials />
 
-        {/* 8. Materials / Finishes (Acrylic vs PVC visual comparison) */}
-        <BeautySection
-          onSelectStand={() => handleSelectMaterialProduct('acrylic-stand')}
-          onSelectCard={() => handleSelectMaterialProduct('pvc-card')}
-        />
-
-        {/* 9. FAQs (Clean Accordion) */}
+        {/* 8. FAQs (Clean Accordion) */}
         <FAQSection />
 
-        {/* 10. Final Product CTA */}
+        {/* 9. Final Product CTA */}
         <FinalCTA onShopClick={() => scrollToSection('products-section')} />
       </main>
 
@@ -235,6 +245,7 @@ function StorefrontApp() {
         onNavigateToFaqs={() => scrollToSection('faqs-section')}
         onOpenPolicy={(policy) => setActivePolicy(policy)}
         onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
+        onOpenAdminOrders={() => setIsAdminOrdersOpen(true)}
       />
 
       {/* Modals & Drawers */}
@@ -309,17 +320,25 @@ function StorefrontApp() {
         onReorder={handleReorder}
         onNavigateToProducts={() => scrollToSection('products-section')}
       />
+
+      {/* Firebase Database & Admin Orders Modal */}
+      <AdminOrdersModal
+        isOpen={isAdminOrdersOpen}
+        onClose={() => setIsAdminOrdersOpen(false)}
+      />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <ToastProvider>
-      <WishlistProvider>
-        <StorefrontApp />
-      </WishlistProvider>
-    </ToastProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <WishlistProvider>
+          <StorefrontApp />
+        </WishlistProvider>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
 
