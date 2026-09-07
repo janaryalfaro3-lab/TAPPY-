@@ -36,6 +36,7 @@ import { Order, CartItem, PaymentMethodId, Product, OrderStatus } from '../types
 import { ProductMockup } from './ProductMockup';
 import { PRODUCTS } from '../data/products';
 import { useToast } from './ToastProvider';
+import { subscribeToOrders, getFirestoreOrderByOrderId } from '../services/firebaseService';
 
 interface OrderHistoryModalProps {
   isOpen: boolean;
@@ -43,6 +44,7 @@ interface OrderHistoryModalProps {
   onSelectProduct?: (product: Product) => void;
   onReorder?: (items: CartItem[]) => void;
   onNavigateToProducts: () => void;
+  onOpenTrackingPage?: (orderId: string) => void;
 }
 
 const ORDERS_STORAGE_KEY = 'tapreviewnfc_order_history';
@@ -104,7 +106,8 @@ export interface RealtimeStage {
 export const calculateRealtimeStatus = (
   order: Order,
   syncTimestamp?: number,
-  overrideStage?: 'pending' | 'processing' | 'shipped' | 'delivered'
+  overrideStage?: 'pending' | 'processing' | 'shipped' | 'delivered',
+  firestoreStatus?: OrderStatus
 ) => {
   // Parse order created date
   let orderDate = new Date(order.createdAt);
@@ -113,20 +116,20 @@ export const calculateRealtimeStatus = (
   }
 
   const now = syncTimestamp ? new Date(syncTimestamp) : new Date();
-  const elapsedMs = Math.max(0, now.getTime() - orderDate.getTime());
-  const elapsedHours = elapsedMs / (1000 * 60 * 60);
 
-  // Dynamic real-time stage progression based on elapsed hours or manual override
+  // Dynamic real-time stage progression: manual override > live Firestore status > order record status
   let derivedStage: 'pending' | 'processing' | 'shipped' | 'delivered' = 'pending';
 
-  if (overrideStage) {
-    derivedStage = overrideStage;
-  } else if (order.status === 'delivered' || elapsedHours >= 72) {
+  const effectiveStatus = overrideStage || firestoreStatus || order.status;
+
+  if (effectiveStatus === 'delivered') {
     derivedStage = 'delivered';
-  } else if (order.status === 'shipped' || elapsedHours >= 24) {
+  } else if (effectiveStatus === 'shipped') {
     derivedStage = 'shipped';
-  } else if (order.status === 'processing' || elapsedHours >= 4) {
+  } else if (effectiveStatus === 'processing') {
     derivedStage = 'processing';
+  } else if (effectiveStatus === 'pending') {
+    derivedStage = 'pending';
   } else {
     derivedStage = 'pending';
   }
@@ -238,6 +241,7 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
   onSelectProduct,
   onReorder,
   onNavigateToProducts,
+  onOpenTrackingPage,
 }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
@@ -247,6 +251,12 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncTimestamp, setSyncTimestamp] = useState<number>(Date.now());
   const [stageOverrides, setStageOverrides] = useState<Record<string, 'pending' | 'processing' | 'shipped' | 'delivered'>>({});
+  
+  // Real-time Firestore shipping status sync
+  const [firestoreStatusMap, setFirestoreStatusMap] = useState<Record<string, { status: OrderStatus; updatedAt?: any }>>({});
+  const [isFirestoreConnected, setIsFirestoreConnected] = useState(false);
+  const [lookedUpFirestoreOrder, setLookedUpFirestoreOrder] = useState<Order | null>(null);
+  const [isLookingUp, setIsLookingUp] = useState(false);
 
   const { showToast } = useToast();
 
@@ -272,11 +282,104 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
   };
 
   useEffect(() => {
-    if (isOpen) {
-      loadOrders();
-      setSyncTimestamp(Date.now());
-    }
+    if (!isOpen) return;
+
+    loadOrders();
+    setSyncTimestamp(Date.now());
+
+    // Subscribe to Firestore 'orders' collection in real-time to fetch shipping updates
+    const unsubscribe = subscribeToOrders((liveOrders) => {
+      setIsFirestoreConnected(true);
+      const statusMap: Record<string, { status: OrderStatus; updatedAt?: any }> = {};
+
+      liveOrders.forEach((doc) => {
+        const orderId = doc.orderId || doc.id;
+        if (orderId && doc.status) {
+          statusMap[orderId] = {
+            status: doc.status as OrderStatus,
+            updatedAt: doc.updatedAt,
+          };
+        }
+      });
+
+      setFirestoreStatusMap(statusMap);
+    });
+
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, [isOpen]);
+
+  const handleLookupFirestoreOrder = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const cleanId = searchQuery.trim();
+    if (!cleanId) return;
+
+    setIsLookingUp(true);
+    try {
+      const found = await getFirestoreOrderByOrderId(cleanId);
+      if (found) {
+        const orderData: Order = {
+          id: found.orderId || found.id,
+          createdAt: found.createdAt || new Date().toLocaleDateString('en-US'),
+          items: Array.isArray(found.items)
+            ? found.items.map((it: any) => {
+                const matchedProduct = PRODUCTS.find((p) => p.id === it.productId) || {
+                  id: it.productId || 'acrylic-stand',
+                  name: it.productName || 'NFC Hardware',
+                  price: it.price || 1290,
+                  format: it.format || 'Acrylic Display Stand',
+                  features: ['NFC Built-in'],
+                  description: 'Google Review Hardware',
+                  rating: 5,
+                  reviewCount: 50,
+                  badge: 'Bestseller',
+                };
+                return {
+                  product: matchedProduct,
+                  quantity: it.quantity || 1,
+                  businessName: it.businessName || found.customerInfo?.businessName,
+                  customGoogleLink: it.customGoogleLink || found.customerInfo?.googleReviewUrlOrPlace,
+                };
+              })
+            : [],
+          subtotal: found.subtotal || 0,
+          shipping: found.shipping || 0,
+          total: found.total || 0,
+          paymentMethod: (found.paymentMethod as PaymentMethodId) || 'gcash',
+          customerInfo: found.customerInfo || {
+            fullName: 'Customer',
+            email: '',
+            phone: '',
+            address: '',
+            city: '',
+          },
+          status: (found.status as OrderStatus) || 'pending',
+          estimatedDelivery: found.estimatedDelivery || '2-3 Business Days',
+        };
+
+        setLookedUpFirestoreOrder(orderData);
+        setExpandedOrderId(orderData.id);
+        showToast({
+          type: 'success',
+          title: 'Order Found in Firestore',
+          message: `Order #${orderData.id} status is "${(found.status || 'pending').toUpperCase()}".`,
+        });
+      } else {
+        showToast({
+          type: 'info',
+          title: 'Not Found in Firestore',
+          message: `No order found with ID "${cleanId}". Checking local history...`,
+        });
+      }
+    } catch (err) {
+      console.warn('Error querying Firestore order:', err);
+    } finally {
+      setIsLookingUp(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -489,9 +592,18 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
     }, 500);
   };
 
-  const filteredOrders = orders.filter((order) => {
+  const allOrders = React.useMemo(() => {
+    let combined = [...orders];
+    if (lookedUpFirestoreOrder && !combined.some((o) => o.id === lookedUpFirestoreOrder.id)) {
+      combined = [lookedUpFirestoreOrder, ...combined];
+    }
+    return combined;
+  }, [orders, lookedUpFirestoreOrder]);
+
+  const filteredOrders = allOrders.filter((order) => {
     const override = stageOverrides[order.id];
-    const tracker = calculateRealtimeStatus(order, syncTimestamp, override);
+    const liveStatus = firestoreStatusMap[order.id]?.status;
+    const tracker = calculateRealtimeStatus(order, syncTimestamp, override, liveStatus);
 
     // Status filter
     if (statusFilter !== 'all' && tracker.stage !== statusFilter) {
@@ -517,31 +629,42 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
     return true;
   });
 
-  const getStatusBadgeUI = (stage: 'pending' | 'processing' | 'shipped' | 'delivered') => {
+  const getStatusBadgeUI = (stage: 'pending' | 'processing' | 'shipped' | 'delivered' | string) => {
     switch (stage) {
       case 'pending':
         return {
-          label: 'Placed & Verified',
+          label: 'Pending',
+          subLabel: 'Payment Verified & Queued',
           color: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
           dot: 'bg-amber-400',
         };
       case 'processing':
         return {
-          label: 'NFC Chip Encoding',
+          label: 'Processing',
+          subLabel: 'NFC Chip Encoding & Quality Audit',
           color: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
           dot: 'bg-indigo-400',
         };
       case 'shipped':
         return {
-          label: 'In-Transit (J&T)',
+          label: 'Shipped',
+          subLabel: 'In-Transit via Courier (J&T)',
           color: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
           dot: 'bg-sky-400',
         };
       case 'delivered':
         return {
-          label: 'Delivered to Counter',
+          label: 'Delivered',
+          subLabel: 'Delivered to Business Counter',
           color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
           dot: 'bg-emerald-400',
+        };
+      default:
+        return {
+          label: 'Pending',
+          subLabel: 'Order In Queue',
+          color: 'bg-slate-500/15 text-slate-300 border-slate-500/30',
+          dot: 'bg-slate-400',
         };
     }
   };
@@ -622,20 +745,38 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
           </div>
         </div>
 
-        {/* Search & Status Filter Bar */}
-        {orders.length > 0 && (
-          <div className="p-4 sm:px-7 bg-slate-950/40 border-b border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
+        {/* Search & Status Filter Bar with Direct Firestore Order Tracking */}
+        <div className="p-4 sm:px-7 bg-slate-950/40 border-b border-slate-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shrink-0">
+          <form
+            onSubmit={handleLookupFirestoreOrder}
+            className="relative flex-1 flex items-center gap-2"
+          >
             <div className="relative flex-1">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search by Order ID (TR-XXXXXX), Waybill, or Place..."
+                placeholder="Search or enter Order ID (e.g. TR-XXXXXX) to track live..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-sky-400 transition-colors"
+                className="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-sky-400 transition-colors font-mono"
               />
             </div>
+            <button
+              type="submit"
+              disabled={isLookingUp || !searchQuery.trim()}
+              className="px-3.5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-40 disabled:hover:bg-sky-500 text-slate-950 font-mono font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-xs active:scale-95"
+              title="Track order status directly from Firestore"
+            >
+              {isLookingUp ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Truck className="w-3.5 h-3.5" />
+              )}
+              <span>Track Order</span>
+            </button>
+          </form>
 
+          {allOrders.length > 0 && (
             <div className="flex items-center gap-1.5 overflow-x-auto text-[11px] font-mono scrollbar-none">
               {(['all', 'pending', 'processing', 'shipped', 'delivered'] as const).map((filter) => (
                 <button
@@ -651,12 +792,12 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
                 </button>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Main Content Area */}
         <div className="p-6 sm:p-7 overflow-y-auto flex-1 space-y-4">
-          {orders.length === 0 ? (
+          {allOrders.length === 0 ? (
             /* Empty State */
             <div className="py-12 sm:py-16 text-center space-y-5">
               <div className="w-16 h-16 rounded-3xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-slate-400 mx-auto shadow-inner">
@@ -667,7 +808,7 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
                   No Order Records Found
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Orders placed in this store are dynamically saved here for live 4-stage tracking (Placed, Encoding, In-Transit, Delivered) and instant re-ordering.
+                  Have an existing order number? Enter your Order ID above to fetch real-time shipping updates directly from Firestore.
                 </p>
               </div>
 
@@ -699,15 +840,23 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
             <div className="py-10 text-center space-y-3">
               <Search className="w-8 h-8 text-slate-400 mx-auto" />
               <p className="text-sm font-semibold text-white">No orders match "{searchQuery}"</p>
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setStatusFilter('all');
-                }}
-                className="text-xs text-sky-400 hover:underline font-mono cursor-pointer"
-              >
-                Reset Search Filters
-              </button>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  onClick={handleLookupFirestoreOrder}
+                  className="text-xs bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg font-mono cursor-pointer transition-all"
+                >
+                  Check Firestore for "{searchQuery}"
+                </button>
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setStatusFilter('all');
+                  }}
+                  className="text-xs text-slate-400 hover:text-white font-mono cursor-pointer"
+                >
+                  Reset Filters
+                </button>
+              </div>
             </div>
           ) : (
             /* Orders List with Intuitive Visual Progress Journey */
@@ -757,13 +906,24 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
                                   <Copy className="w-3 h-3" />
                                 )}
                               </button>
-                              <span
-                                className={`inline-flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold border ${statusBadge.color}`}
-                              >
-                                <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot} ${tracker.stage !== 'delivered' ? 'animate-pulse' : ''}`} />
-                                {statusBadge.label}
-                              </span>
-                            </div>
+                                <div className="inline-flex items-center gap-1.5 ml-1">
+                                  <span className="text-[10px] uppercase font-mono tracking-wider font-semibold text-slate-400 hidden xs:inline">
+                                    Track Order:
+                                  </span>
+                                  <span
+                                    className={`inline-flex items-center gap-1.5 text-xs font-mono px-2.5 py-0.5 rounded-full font-bold border shadow-xs ${statusBadge.color}`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot} ${tracker.stage !== 'delivered' ? 'animate-pulse' : ''}`} />
+                                    <span>{statusBadge.label}</span>
+                                  </span>
+                                  {firestoreStatusMap[order.id] && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono text-emerald-400 bg-emerald-950/50 border border-emerald-500/30" title="Live status fetched from Firestore 'orders' collection">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                                      Live Sync
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
 
                             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
                               <span>Placed: {order.createdAt}</span>
@@ -875,6 +1035,23 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
                                   <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
                                   <span>{isSyncing ? 'Syncing...' : 'Refresh GPS'}</span>
                                 </button>
+                              </div>
+                            </div>
+
+                            {/* Prominent Track Order Live Status Banner */}
+                            <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/90 border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+                              <div className="flex flex-wrap items-center gap-2.5">
+                                <span className="text-xs font-mono uppercase tracking-wider font-bold text-slate-300">
+                                  Track Order Status:
+                                </span>
+                                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold border shadow-xs ${statusBadge.color}`}>
+                                  <span className={`w-2 h-2 rounded-full ${statusBadge.dot} ${tracker.stage !== 'delivered' ? 'animate-pulse' : ''}`} />
+                                  <span>{statusBadge.label} — {statusBadge.subLabel}</span>
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px] font-mono text-emerald-400">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                <span>Live updates synced from Firestore 'orders'</span>
                               </div>
                             </div>
 
@@ -1128,7 +1305,21 @@ export const OrderHistoryModal: React.FC<OrderHistoryModalProps> = ({
 
                           {/* Order Action Buttons */}
                           <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {onOpenTrackingPage && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    onClose();
+                                    onOpenTrackingPage(order.id);
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500 text-sky-300 hover:text-slate-950 text-xs font-mono font-bold border border-sky-500/40 transition-all cursor-pointer"
+                                >
+                                  <Truck className="w-3.5 h-3.5" />
+                                  <span>Track Live Page</span>
+                                </button>
+                              )}
+
                               <button
                                 type="button"
                                 onClick={(e) => handlePrintReceipt(order, e)}

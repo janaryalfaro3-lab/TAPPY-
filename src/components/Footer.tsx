@@ -10,7 +10,6 @@ interface FooterProps {
   onNavigateToFaqs: () => void;
   onOpenPolicy: (type: PolicyType) => void;
   onOpenOrderHistory?: () => void;
-  onOpenAdminOrders?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -21,7 +20,6 @@ export const Footer: React.FC<FooterProps> = ({
   onNavigateToFaqs,
   onOpenPolicy,
   onOpenOrderHistory,
-  onOpenAdminOrders,
 }) => {
   return (
     <footer id="main-footer" className="bg-slate-900 text-white border-t border-slate-800 py-14 sm:py-18 relative overflow-hidden">
@@ -35,38 +33,38 @@ export const Footer: React.FC<FooterProps> = ({
 
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 pb-10 border-b border-slate-800">
           {/* Brand Info */}
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 via-indigo-500 to-teal-400 flex items-center justify-center text-white font-black text-sm shadow-md shadow-sky-500/20">
+              <span className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-white font-bold text-sm">
                 T
               </span>
-              <span className="font-display text-lg font-black tracking-[0.14em] uppercase text-white flex items-center">
-                TAPPY<span className="text-sky-400 font-extrabold text-xs ml-1 font-mono">NFC</span>
+              <span className="font-display text-base font-bold tracking-tight text-white flex items-center gap-1.5">
+                TAPPY <span className="text-[11px] font-medium text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded">NFC</span>
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 tracking-wider uppercase font-mono font-medium pl-10.5">
-              Commercial NFC Google Review Hardware
+            <p className="text-xs text-slate-400 pl-10.5">
+              Commercial Contactless Google Review Hardware
             </p>
           </div>
 
           {/* Links */}
-          <nav className="flex flex-wrap items-center gap-x-7 gap-y-2.5 text-xs text-slate-300 font-semibold font-mono">
+          <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-300 font-medium">
             <button
               onClick={onNavigateToProducts}
-              className="hover:text-sky-400 transition-colors cursor-pointer py-1 active:scale-95"
+              className="hover:text-white transition-colors cursor-pointer py-1"
             >
               Products
             </button>
             <button
               onClick={onNavigateToHowItWorks}
-              className="hover:text-sky-400 transition-colors cursor-pointer py-1 active:scale-95"
+              className="hover:text-white transition-colors cursor-pointer py-1"
             >
               How It Works
             </button>
             {onNavigateToImpact && (
               <button
                 onClick={onNavigateToImpact}
-                className="hover:text-sky-400 transition-colors cursor-pointer py-1 active:scale-95"
+                className="hover:text-white transition-colors cursor-pointer py-1"
               >
                 Impact
               </button>
@@ -74,14 +72,14 @@ export const Footer: React.FC<FooterProps> = ({
             {onNavigateToReviews && (
               <button
                 onClick={onNavigateToReviews}
-                className="hover:text-sky-400 transition-colors cursor-pointer py-1 active:scale-95"
+                className="hover:text-white transition-colors cursor-pointer py-1"
               >
-                Reviews
+                Testimonials
               </button>
             )}
             <button
               onClick={onNavigateToFaqs}
-              className="hover:text-sky-400 transition-colors cursor-pointer py-1 active:scale-95"
+              className="hover:text-white transition-colors cursor-pointer py-1"
             >
               FAQs
             </button>
@@ -89,41 +87,32 @@ export const Footer: React.FC<FooterProps> = ({
               <button
                 id="footer-track-orders-btn"
                 onClick={onOpenOrderHistory}
-                className="hover:text-sky-400 text-sky-300 font-bold transition-colors cursor-pointer py-1 active:scale-95 flex items-center gap-1"
+                className="text-sky-400 hover:text-sky-300 font-medium transition-colors cursor-pointer py-1 flex items-center gap-1"
               >
                 Track Order
               </button>
             )}
-            {onOpenAdminOrders && (
-              <button
-                id="footer-admin-orders-btn"
-                onClick={onOpenAdminOrders}
-                className="hover:text-indigo-300 text-indigo-400 font-bold transition-colors cursor-pointer py-1 active:scale-95 flex items-center gap-1"
-              >
-                Admin Database
-              </button>
-            )}
             <button
               onClick={() => onOpenPolicy('shipping')}
-              className="hover:text-sky-400 transition-colors cursor-pointer py-1 active:scale-95"
+              className="hover:text-white transition-colors cursor-pointer py-1"
             >
               Shipping
             </button>
             <button
               onClick={() => onOpenPolicy('payment')}
-              className="hover:text-sky-400 transition-colors cursor-pointer py-1 active:scale-95"
+              className="hover:text-white transition-colors cursor-pointer py-1"
             >
               Payment
             </button>
             <button
               onClick={() => onOpenPolicy('contact')}
-              className="hover:text-sky-400 transition-colors cursor-pointer py-1 active:scale-95"
+              className="hover:text-white transition-colors cursor-pointer py-1"
             >
               Contact
             </button>
             <button
               onClick={() => onOpenPolicy('privacy')}
-              className="hover:text-sky-400 transition-colors cursor-pointer py-1 active:scale-95"
+              className="hover:text-white transition-colors cursor-pointer py-1"
             >
               Privacy
             </button>

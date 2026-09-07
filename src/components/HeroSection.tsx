@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { ArrowRight, Sparkles, Box, Layers, Radio } from 'lucide-react';
+import React from 'react';
+import { ArrowRight, CheckCircle2, ShieldCheck, QrCode, Smartphone } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ProductMockup } from './ProductMockup';
-import { NfcBackground3D } from './NfcBackground3D';
 
 interface HeroSectionProps {
   onShopClick: () => void;
@@ -13,225 +12,206 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onShopClick,
   onHowItWorksClick,
 }) => {
-  const [heroViewMode, setHeroViewMode] = useState<'lineup' | '3d-nfc'>('3d-nfc');
-
   return (
-    <motion.section
+    <section
       id="hero-section"
-      className="relative pt-32 sm:pt-36 md:pt-40 pb-20 md:pb-28 bg-gradient-to-b from-slate-900/90 via-slate-900/95 to-slate-950 text-white overflow-hidden border-b border-slate-800"
-      initial={{ opacity: 0, y: 36 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      className="relative pt-32 sm:pt-36 md:pt-40 pb-20 md:pb-28 bg-slate-950 text-white border-b border-slate-800"
     >
-      {/* 3D NFC Background Canvas */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-auto -z-10 opacity-70">
-        <NfcBackground3D showControls={false} />
-      </div>
-
-      {/* Subtle atmospheric ambient glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-tr from-sky-500/20 via-indigo-500/20 to-teal-500/15 blur-3xl pointer-events-none -z-20 rounded-full" />
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-slate-950/90 pointer-events-none -z-10" />
-
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-          {/* Left Column / Editorial Content (5 cols) */}
+          {/* Left Column / Editorial Content (6 cols) */}
           <motion.div
-            className="lg:col-span-5 space-y-8 text-left"
-            initial={{ opacity: 0, y: 24 }}
+            className="lg:col-span-6 space-y-8 text-left"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-sky-500/15 backdrop-blur-md border border-sky-400/30 text-sky-300 text-[11px] font-mono font-bold tracking-wide rounded-full shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse ring-4 ring-sky-500/20" />
-                <span>3D NTAG213 CONTACTLESS NFC HARDWARE</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-900 border border-slate-800 text-slate-300 text-xs font-medium rounded-full">
+                <span className="w-2 h-2 rounded-full bg-sky-400" />
+                <span>Contactless Google Review Hardware</span>
               </div>
 
-              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.08]">
-                Make Every Review <br />
-                <span className="bg-gradient-to-r from-sky-400 via-indigo-300 to-teal-300 bg-clip-text text-transparent">
-                  One Tap Away.
-                </span>
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.12]">
+                Make Every Customer Review Effortless.
               </h1>
 
-              <p className="text-base text-slate-300 leading-relaxed max-w-xl font-normal pt-2 tracking-wide">
-                Engineered with high-speed 13.56 MHz NFC micro-antennas. Convert in-person customers into genuine 5-star Google reviews with zero apps needed.
+              <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl font-normal pt-1">
+                Equip your counter, tables, or checkout with commercial-grade NFC stands, cards, tags, and stickers. Customers tap with any smartphone to open your Google Review page instantly—no app required.
               </p>
             </div>
 
             {/* Actions */}
-            <div className="space-y-4 pt-2">
+            <div className="space-y-6 pt-2">
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
                 <button
                   id="hero-shop-products-btn"
                   onClick={onShopClick}
-                  className="bg-white hover:bg-gradient-to-r hover:from-white hover:to-sky-100 text-slate-900 px-7 py-3.5 text-[12px] uppercase tracking-[0.14em] font-black transition-all cursor-pointer flex items-center justify-center gap-2 group shadow-xl hover:shadow-2xl hover:shadow-sky-500/20 active:scale-95 rounded-xl border border-white"
+                  className="bg-white hover:bg-slate-100 text-slate-950 px-7 py-3.5 text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 rounded-lg border border-white active:scale-98 shadow-sm"
                 >
-                  <span>Shop Hardware</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform text-sky-600" />
+                  <span>Explore Products</span>
+                  <ArrowRight className="w-4 h-4 text-slate-900" />
                 </button>
 
                 <button
                   id="hero-how-it-works-btn"
                   onClick={onHowItWorksClick}
-                  className="border border-slate-700/80 hover:border-sky-400/80 bg-slate-900/80 hover:bg-slate-800 text-white text-[12px] uppercase tracking-[0.14em] font-bold py-3.5 px-6 transition-all cursor-pointer text-center shadow-xs hover:shadow-sm active:scale-95 rounded-xl backdrop-blur-md"
+                  className="border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200 text-sm font-medium py-3.5 px-6 transition-all cursor-pointer text-center rounded-lg active:scale-98"
                 >
                   How It Works
                 </button>
               </div>
 
-              {/* Subline */}
-              <p className="text-[11px] text-slate-400 font-mono tracking-wide flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Dual-Band: 3D Contactless NFC Induction + QR Fallback
-              </p>
+              {/* Assurances List */}
+              <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-400">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0" />
+                  <span>Compatible with iOS & Android</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0" />
+                  <span>Free Google link pre-encoding</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0" />
+                  <span>Dual NFC tap + QR code fallback</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0" />
+                  <span>Waterproof acrylic & durable PVC</span>
+                </div>
+              </div>
             </div>
           </motion.div>
 
-          {/* Right Column / Interactive 3D Showcase and Product Lineup (7 cols) */}
+          {/* Right Column / Clean Hardware Showcase (6 cols) */}
           <motion.div
-            className="lg:col-span-7"
-            initial={{ opacity: 0, y: 32 }}
+            className="lg:col-span-6"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="relative border border-slate-700/80 bg-slate-900/85 backdrop-blur-md rounded-3xl overflow-hidden group shadow-2xl shadow-slate-950/50 p-6 sm:p-8 ring-1 ring-white/10">
-              {/* Category & Mode Switcher Header */}
-              <div className="flex items-center justify-between pb-6 border-b border-slate-800 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-xs">
-                    <Radio className="w-4 h-4 animate-pulse" />
+            <div className="border border-slate-800 bg-slate-900/60 rounded-2xl p-6 sm:p-7 space-y-5 shadow-lg">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                <div>
+                  <h3 className="text-sm font-semibold text-white">
+                    Commercial Hardware Lineup
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Pre-programmed with your business Google Maps link
+                  </p>
+                </div>
+                <span className="text-xs text-slate-400 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-md font-medium">
+                  4 Formats
+                </span>
+              </div>
+
+              {/* 4 Hardware Cards Grid */}
+              <div className="grid grid-cols-2 gap-3.5">
+                {/* 1. Acrylic Stand */}
+                <div
+                  onClick={onShopClick}
+                  className="p-4 bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-xl cursor-pointer transition-colors group flex flex-col justify-between"
+                >
+                  <div className="h-28 flex items-center justify-center">
+                    <div className="transform scale-75 origin-center">
+                      <ProductMockup format="stand" />
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-white uppercase tracking-wider block font-display">
-                      3D NFC Hardware Visualizer
-                    </span>
-                    <span className="text-[10px] font-mono text-sky-400">
-                      13.56 MHz Near-Field Induction
-                    </span>
+                  <div className="mt-3 pt-3 border-t border-slate-800/80">
+                    <div className="text-xs font-semibold text-white group-hover:text-sky-400 transition-colors">
+                      Acrylic Standee
+                    </div>
+                    <div className="text-[11px] text-slate-400 flex justify-between mt-1">
+                      <span>90 × 110 mm</span>
+                      <span className="font-semibold text-white">₱699</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* View Switcher Tabs */}
-                <div className="flex items-center gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
-                  <button
-                    onClick={() => setHeroViewMode('3d-nfc')}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 ${
-                      heroViewMode === '3d-nfc'
-                        ? 'bg-sky-500 text-white shadow-xs'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <Box className="w-3 h-3" />
-                    <span>3D Model</span>
-                  </button>
-                  <button
-                    onClick={() => setHeroViewMode('lineup')}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 ${
-                      heroViewMode === 'lineup'
-                        ? 'bg-indigo-500 text-white shadow-xs'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <Layers className="w-3 h-3" />
-                    <span>Lineup</span>
-                  </button>
+                {/* 2. Acrylic Tag */}
+                <div
+                  onClick={onShopClick}
+                  className="p-4 bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-xl cursor-pointer transition-colors group flex flex-col justify-between"
+                >
+                  <div className="h-28 flex items-center justify-center">
+                    <div className="transform scale-70 origin-center">
+                      <ProductMockup format="tag" />
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-slate-800/80">
+                    <div className="text-xs font-semibold text-white group-hover:text-sky-400 transition-colors">
+                      Acrylic Square Tag
+                    </div>
+                    <div className="text-[11px] text-slate-400 flex justify-between mt-1">
+                      <span>40 × 40 mm</span>
+                      <span className="font-semibold text-white">₱349</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. PVC Card */}
+                <div
+                  onClick={onShopClick}
+                  className="p-4 bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-xl cursor-pointer transition-colors group flex flex-col justify-between"
+                >
+                  <div className="h-28 flex items-center justify-center">
+                    <div className="transform scale-75 origin-center">
+                      <ProductMockup format="card" />
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-slate-800/80">
+                    <div className="text-xs font-semibold text-white group-hover:text-sky-400 transition-colors">
+                      PVC Business Card
+                    </div>
+                    <div className="text-[11px] text-slate-400 flex justify-between mt-1">
+                      <span>85.6 × 54 mm</span>
+                      <span className="font-semibold text-white">₱449</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. PVC Sticker */}
+                <div
+                  onClick={onShopClick}
+                  className="p-4 bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-xl cursor-pointer transition-colors group flex flex-col justify-between"
+                >
+                  <div className="h-28 flex items-center justify-center">
+                    <div className="transform scale-70 origin-center">
+                      <ProductMockup format="sticker" />
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-slate-800/80">
+                    <div className="text-xs font-semibold text-white group-hover:text-sky-400 transition-colors">
+                      PVC Round Sticker
+                    </div>
+                    <div className="text-[11px] text-slate-400 flex justify-between mt-1">
+                      <span>40 × 40 mm</span>
+                      <span className="font-semibold text-white">₱249</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* View Content: 3D Interactive Stage OR 4-Product Lineup */}
-              {heroViewMode === '3d-nfc' ? (
-                <div className="relative min-h-[320px] sm:min-h-[340px] rounded-2xl overflow-hidden my-4 border border-slate-800/80 bg-slate-950/60 flex items-center justify-center">
-                  <NfcBackground3D showControls={true} />
-                </div>
-              ) : (
-                <div className="grid grid-cols-4 gap-2 sm:gap-4 items-end justify-items-center py-6 sm:py-8 min-h-[320px] sm:min-h-[340px]">
-                  {/* 1. Acrylic Standee (90x110 mm) */}
-                  <div
-                    className="flex flex-col items-center group/item hover:scale-105 transition-transform cursor-pointer active:scale-95 bg-slate-800/40 p-3 rounded-2xl border border-slate-700/50 w-full"
-                    onClick={onShopClick}
-                  >
-                    <div className="transform scale-75 sm:scale-85 origin-bottom">
-                      <ProductMockup format="stand" />
-                    </div>
-                    <div className="text-center mt-2">
-                      <div className="text-[9px] sm:text-[10px] font-bold text-white line-clamp-1">
-                        Acrylic Stand
-                      </div>
-                      <div className="text-[8px] sm:text-[9px] font-mono text-slate-400">
-                        90 × 110 mm
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 2. Acrylic Tag (40x40 mm) */}
-                  <div
-                    className="flex flex-col items-center group/item hover:scale-105 transition-transform cursor-pointer active:scale-95 bg-slate-800/40 p-3 rounded-2xl border border-slate-700/50 w-full"
-                    onClick={onShopClick}
-                  >
-                    <div className="transform scale-70 sm:scale-80 origin-bottom">
-                      <ProductMockup format="tag" />
-                    </div>
-                    <div className="text-center mt-2">
-                      <div className="text-[9px] sm:text-[10px] font-bold text-white line-clamp-1">
-                        Acrylic Tag
-                      </div>
-                      <div className="text-[8px] sm:text-[9px] font-mono text-slate-400">
-                        40 × 40 mm
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 3. PVC Business Card (85.6x54 mm) */}
-                  <div
-                    className="flex flex-col items-center group/item hover:scale-105 transition-transform cursor-pointer active:scale-95 bg-slate-800/40 p-3 rounded-2xl border border-slate-700/50 w-full"
-                    onClick={onShopClick}
-                  >
-                    <div className="transform scale-75 sm:scale-85 origin-bottom">
-                      <ProductMockup format="card" />
-                    </div>
-                    <div className="text-center mt-2">
-                      <div className="text-[9px] sm:text-[10px] font-bold text-white line-clamp-1">
-                        PVC Card
-                      </div>
-                      <div className="text-[8px] sm:text-[9px] font-mono text-slate-400">
-                        85.6 × 54 mm
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 4. PVC Round Sticker (40x40 mm) */}
-                  <div
-                    className="flex flex-col items-center group/item hover:scale-105 transition-transform cursor-pointer active:scale-95 bg-slate-800/40 p-3 rounded-2xl border border-slate-700/50 w-full"
-                    onClick={onShopClick}
-                  >
-                    <div className="transform scale-70 sm:scale-80 origin-bottom">
-                      <ProductMockup format="sticker" />
-                    </div>
-                    <div className="text-center mt-2">
-                      <div className="text-[9px] sm:text-[10px] font-bold text-white line-clamp-1">
-                        PVC Sticker
-                      </div>
-                      <div className="text-[8px] sm:text-[9px] font-mono text-slate-400">
-                        40 × 40 mm
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Bottom Specs Bar */}
-              <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                <span className="text-sky-400 flex items-center gap-1 font-semibold">
-                  <Sparkles className="w-3 h-3" />
-                  Copper Antenna Coils & Micro-Die
+              {/* Technical Specifications Footnote */}
+              <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-slate-400" />
+                  NTAG213 Microchip
                 </span>
-                <span>NTAG213 · Zero Battery · Lifetime Tap</span>
+                <span className="flex items-center gap-1.5">
+                  <QrCode className="w-3.5 h-3.5 text-slate-400" />
+                  Printed QR Backup
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
+                  Zero Battery
+                </span>
               </div>
             </div>
           </motion.div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 };

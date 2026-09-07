@@ -3,6 +3,7 @@ import { X, Smartphone, Zap, CreditCard, Building, Loader2, Lock, Copy, Check, S
 import { CartItem, CustomerInfo, Order, PaymentMethodId } from '../types';
 import { PAYMENT_METHODS } from '../data/products';
 import { createFirestoreOrder } from '../services/firebaseService';
+import { useOrderSoundNotification } from '../hooks/useOrderSoundNotification';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -20,6 +21,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId>('gcash');
   const [isProcessing, setIsProcessing] = useState(false);
   const [copiedDetail, setCopiedDetail] = useState<string | null>(null);
+
+  // Audio ping hook (silent-by-default, triggers subtle ping only if enabled in admin panel)
+  const { playOrderSuccessPing } = useOrderSoundNotification();
 
   // Keyboard Escape listener to exit modal
   useEffect(() => {
@@ -77,6 +81,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setIsProcessing(true);
 
     const orderNumber = `TR-${Math.floor(100000 + Math.random() * 900000)}`;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tapreview.ph';
+    const trackingUrl = `${origin}/?track=${orderNumber}`;
+
     const newOrder: Order = {
       id: orderNumber,
       createdAt: new Date().toLocaleDateString('en-US', {
@@ -94,9 +101,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       customerInfo: customer,
       status: 'confirmed',
       estimatedDelivery: '2–4 Business Days',
+      trackingUrl,
+      trackingNumber: `JT-PH-${orderNumber.replace('TR-', '')}`,
+      courier: 'J&T Express Philippines',
+      smsNotification: {
+        sent: true,
+        recipient: customer.phone,
+        timestamp: new Date().toISOString(),
+      },
     };
 
-    // Save into Firebase Firestore & notify admin jaesthetic.info@gmail.com
+    // Save into Firebase Firestore & notify email and automated mock SMS
     try {
       await createFirestoreOrder(newOrder);
     } catch (err) {
@@ -105,6 +120,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     setTimeout(() => {
       setIsProcessing(false);
+      // Play subtle ping sound if explicitly toggled on in admin panel (silent by default)
+      playOrderSuccessPing();
       onOrderCompleted(newOrder);
     }, 600);
   };

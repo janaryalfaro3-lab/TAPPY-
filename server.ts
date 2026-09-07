@@ -45,17 +45,72 @@ const orderNotificationsLog: Array<{
   total: number;
 }> = [];
 
+// Mock SMS dispatch log
+const smsDispatchLog: Array<{
+  timestamp: string;
+  orderId: string;
+  recipientPhone: string;
+  message: string;
+  gatewayStatus: 'DELIVERED_MOCK';
+  messageId: string;
+}> = [];
+
 // API Health
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     adminEmail: ADMIN_NOTIFICATION_EMAIL,
     firebaseConfigured: true,
+    smsGateway: 'PhilSMS / Semaphore Mock Active',
     timestamp: new Date().toISOString(),
   });
 });
 
-// API endpoint to notify admin jaesthetic.info@gmail.com on every order
+// API endpoint to send mock SMS confirmation
+app.post('/api/sms/send-mock', (req, res) => {
+  try {
+    const { orderId, phone, customerName, total, trackingUrl } = req.body;
+
+    if (!orderId || !phone) {
+      return res.status(400).json({ error: 'Missing orderId or phone' });
+    }
+
+    const cleanPhone = String(phone).trim();
+    const smsMessageId = `SMS-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const smsContent = `[TAPPY NFC] Hi ${customerName || 'Valued Customer'}! Your Order #${orderId} (₱${Number(total || 0).toLocaleString()}) is confirmed & being prepared. Track live progress here: ${trackingUrl}. Need help? Viber/Call 09764421242.`;
+
+    console.log(`\n======================================================`);
+    console.log(`📱 [AUTOMATED SMS CONFIRMATION - MOCK SMS GATEWAY]`);
+    console.log(`  To: ${cleanPhone}`);
+    console.log(`  Message ID: ${smsMessageId}`);
+    console.log(`  Message: "${smsContent}"`);
+    console.log(`  Gateway Provider: Semaphore / PhilSMS Mock API (PH Telco Relay)`);
+    console.log(`  Delivery Status: SUCCESSFUL (200 OK)`);
+    console.log(`======================================================\n`);
+
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      orderId,
+      recipientPhone: cleanPhone,
+      message: smsContent,
+      gatewayStatus: 'DELIVERED_MOCK' as const,
+      messageId: smsMessageId,
+    };
+
+    smsDispatchLog.unshift(logEntry);
+
+    return res.json({
+      success: true,
+      message: 'Automated SMS confirmation dispatched via mock gateway',
+      smsDetails: logEntry,
+    });
+  } catch (err: any) {
+    console.error('Error sending mock SMS:', err);
+    return res.status(500).json({ error: err?.message || 'Failed to dispatch mock SMS' });
+  }
+});
+
+// API endpoint to notify on every order (sends email & automated SMS confirmation)
 app.post('/api/orders/notify', async (req, res) => {
   try {
     const { order, firestoreDocId, recipientEmail } = req.body;
@@ -65,8 +120,13 @@ app.post('/api/orders/notify', async (req, res) => {
       return res.status(400).json({ error: 'Missing order payload' });
     }
 
+    const host = req.get('host') || 'localhost:3000';
+    const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+    const trackingUrl = `${protocol}://${host}/?track=${order.id}`;
+
     console.log(`[ORDER NOTIFICATION] New order received: #${order.id} - Customer: ${order.customerInfo.fullName} (${order.customerInfo.email}) - Total: ₱${order.total}`);
     console.log(`[EMAIL DISPATCH] Forwarding order details to store admin: ${targetEmail}`);
+    console.log(`[TRACKING LINK GENERATED] ${trackingUrl}`);
 
     const itemsSummary = order.items
       .map(
@@ -105,47 +165,156 @@ ITEMS ORDERED:
 ----------------------------------------
 ${itemsSummary}
 
+UNIQUE ORDER TRACKING LINK:
+----------------------------------------
+Customers can view their live order progress anytime at:
+${trackingUrl}
+
 ----------------------------------------
 Firebase Database Status: Saved in Firestore ('orders' collection).
-You can manage this order directly in your TAPPY NFC Admin Portal or Firebase Console.
+You can track and manage this order directly in your TAPPY NFC system.
     `;
 
-    let emailSent = false;
+    let adminEmailSent = false;
+    let customerEmailSent = false;
     const activeTransporter = getEmailTransporter();
+    const sender = process.env.SMTP_FROM || `"TAPPY NFC Store" <no-reply@tapreview.ph>`;
 
+    // 1. Send Email to Store Admin (jaesthetic.info@gmail.com)
     if (activeTransporter) {
       try {
         await activeTransporter.sendMail({
-          from: process.env.SMTP_FROM || `"TAPPY NFC Store" <no-reply@tapreview.ph>`,
-          to: targetEmail,
+          from: sender,
+          to: ADMIN_NOTIFICATION_EMAIL,
           subject: emailSubject,
           text: emailBodyText,
         });
-        emailSent = true;
-        console.log(`[EMAIL DISPATCH SUCCESS] Real SMTP email delivered to ${targetEmail}`);
+        adminEmailSent = true;
+        console.log(`[EMAIL DISPATCH SUCCESS] Real SMTP email delivered to admin: ${ADMIN_NOTIFICATION_EMAIL}`);
       } catch (smtpErr) {
-        console.error('[SMTP SEND ERROR] Failed to send via SMTP, logged order securely:', smtpErr);
+        console.error('[SMTP SEND ERROR] Failed to send admin email via SMTP:', smtpErr);
       }
     } else {
-      console.log(`[NOTIFICATION RECORDED] Order #${order.id} recorded for admin ${targetEmail}. (Configure SMTP credentials in .env to enable direct SMTP mailer)`);
+      console.log(`[NOTIFICATION RECORDED] Order #${order.id} notification recorded for admin: ${ADMIN_NOTIFICATION_EMAIL}`);
     }
 
     orderNotificationsLog.unshift({
       timestamp: new Date().toISOString(),
       orderId: order.id,
-      recipient: targetEmail,
-      status: emailSent ? 'sent' : 'logged',
-      summary: `Order #${order.id} - ₱${order.total.toLocaleString()}`,
+      recipient: ADMIN_NOTIFICATION_EMAIL,
+      status: adminEmailSent ? 'sent' : 'logged',
+      summary: `[ADMIN NOTIFICATION] Order #${order.id} - ₱${order.total.toLocaleString()}`,
       customerName: order.customerInfo.fullName,
       total: order.total,
     });
 
+    // 2. Send Automated Confirmation Email to Customer
+    const customerEmail = String(order.customerInfo?.email || '').trim();
+    if (customerEmail && customerEmail.includes('@')) {
+      const customerSubject = `✅ Order Confirmed: #${order.id} - Your TAPPY NFC Google Review Stand`;
+      const customerBodyText = `
+Hi ${order.customerInfo.fullName},
+
+Thank you for your order with TAPPY NFC! We have received your order and queued your NFC hardware for custom programming and inspection.
+
+ORDER SUMMARY:
+----------------------------------------
+Order ID: #${order.id}
+Date: ${order.createdAt}
+Payment Method: ${order.paymentMethod?.toUpperCase()}
+Total Paid: ₱${order.total.toLocaleString()} (Subtotal: ₱${order.subtotal.toLocaleString()} + Shipping: ₱${order.shipping.toLocaleString()})
+
+ITEMS ORDERED:
+----------------------------------------
+${itemsSummary}
+
+DELIVERY ADDRESS:
+----------------------------------------
+${order.customerInfo.fullName}
+${order.customerInfo.address}
+${order.customerInfo.city} ${order.customerInfo.postalCode || ''}
+Phone: ${order.customerInfo.phone}
+
+LIVE TRACKING & STATUS:
+----------------------------------------
+You can track your live order stage and courier waybill anytime here:
+${trackingUrl}
+
+Need assistance? Contact our team at jaesthetic.info@gmail.com or Viber/Call 0976 442 1242.
+
+Best regards,
+The TAPPY NFC Philippines Team
+      `;
+
+      if (activeTransporter) {
+        try {
+          await activeTransporter.sendMail({
+            from: sender,
+            to: customerEmail,
+            subject: customerSubject,
+            text: customerBodyText,
+          });
+          customerEmailSent = true;
+          console.log(`[EMAIL DISPATCH SUCCESS] Real SMTP email delivered to customer: ${customerEmail}`);
+        } catch (custSmtpErr) {
+          console.error('[SMTP SEND ERROR] Failed to send customer email via SMTP:', custSmtpErr);
+        }
+      } else {
+        console.log(`[CUSTOMER CONFIRMATION RECORDED] Order #${order.id} confirmation recorded for customer: ${customerEmail}`);
+      }
+
+      orderNotificationsLog.unshift({
+        timestamp: new Date().toISOString(),
+        orderId: order.id,
+        recipient: customerEmail,
+        status: customerEmailSent ? 'sent' : 'logged',
+        summary: `[CUSTOMER CONFIRMATION] Order #${order.id} - ₱${order.total.toLocaleString()}`,
+        customerName: order.customerInfo.fullName,
+        total: order.total,
+      });
+    }
+
+    // Automated Mock SMS confirmation dispatched to customer's mobile number
+    const customerPhone = String(order.customerInfo?.phone || '').trim();
+    let smsDispatched = false;
+    let smsDetails: any = null;
+
+    if (customerPhone) {
+      const smsMessageId = `SMS-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const smsContent = `[TAPPY NFC] Hi ${order.customerInfo.fullName}! Your Order #${order.id} (₱${order.total.toLocaleString()}) is confirmed & queued. Live tracking: ${trackingUrl}. Support: 09764421242`;
+
+      console.log(`\n======================================================`);
+      console.log(`📱 [AUTOMATED SMS CONFIRMATION - MOCK SMS GATEWAY]`);
+      console.log(`  To: ${customerPhone}`);
+      console.log(`  Message ID: ${smsMessageId}`);
+      console.log(`  Message: "${smsContent}"`);
+      console.log(`  Status: DELIVERED (Mock Gateway)`);
+      console.log(`======================================================\n`);
+
+      smsDetails = {
+        timestamp: new Date().toISOString(),
+        orderId: order.id,
+        recipientPhone: customerPhone,
+        message: smsContent,
+        gatewayStatus: 'DELIVERED_MOCK',
+        messageId: smsMessageId,
+      };
+
+      smsDispatchLog.unshift(smsDetails);
+      smsDispatched = true;
+    }
+
     return res.json({
       success: true,
-      message: `Order #${order.id} recorded and notification dispatched to ${targetEmail}`,
-      targetEmail,
-      emailSent,
+      message: `Order #${order.id} recorded, email sent to admin (${ADMIN_NOTIFICATION_EMAIL}) and customer (${customerEmail || 'N/A'}), and SMS sent to ${customerPhone}`,
+      adminEmail: ADMIN_NOTIFICATION_EMAIL,
+      customerEmail,
+      adminEmailSent,
+      customerEmailSent,
+      smsDispatched,
+      smsDetails,
       orderId: order.id,
+      trackingUrl,
     });
   } catch (error: any) {
     console.error('Error handling order notification:', error);
@@ -178,10 +347,19 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 TAPPY NFC Server running at http://0.0.0.0:${PORT}`);
     console.log(`📧 Admin order recipient configured to: ${ADMIN_NOTIFICATION_EMAIL}`);
   });
+
+  const gracefulShutdown = () => {
+    server.close(() => {
+      process.exit(0);
+    });
+  };
+
+  process.on('SIGTERM', gracefulShutdown);
+  process.on('SIGINT', gracefulShutdown);
 }
 
 startServer();

@@ -118,40 +118,40 @@ export const ShopeeReviewsSection: React.FC<{ isLoading?: boolean }> = ({
       className="py-24 sm:py-32 bg-slate-950/50 backdrop-blur-xl text-white border-b border-slate-800"
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12">
-        {/* Section Header with Shopee Verification Metrics */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-14 pb-8 border-b border-slate-800 gap-6">
+        {/* Section Header with Verification Metrics */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 pb-8 border-b border-slate-800 gap-6">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/10 border border-sky-500/30 text-sky-300 font-mono text-[10px] uppercase tracking-widest font-bold rounded-full">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-900 border border-slate-800 text-slate-300 text-xs font-medium rounded-full">
               <ShoppingBag className="w-3.5 h-3.5 text-sky-400" />
-              Verified Customer Feedback
+              <span>Verified Customer Feedback</span>
             </div>
-            <h2 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-              Merchant Stories & Reviews
+            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">
+              Customer Reviews & Feedback
             </h2>
-            <p className="text-sm text-slate-300 font-mono tracking-wide">
-              Verified businesses from cafés, clinics, salons, and hospitality across the Philippines.
+            <p className="text-sm text-slate-300">
+              Verified business owners across cafés, clinics, salons, and hospitality in the Philippines.
             </p>
           </div>
 
           {/* Scorecard Badge */}
-          <div className="flex items-center gap-4 bg-slate-900/80 backdrop-blur-xl border border-slate-700/80 rounded-2xl p-4 shadow-xl">
+          <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 rounded-xl p-4">
             <div className="text-center pr-4 border-r border-slate-800">
-              <div className="text-2xl font-bold font-mono text-white flex items-center justify-center gap-1.5">
+              <div className="text-2xl font-bold text-white flex items-center justify-center gap-1.5">
                 <span>4.9</span>
-                <Star className="w-4 h-4 fill-[#FBBC05] text-[#FBBC05] inline" />
+                <Star className="w-4 h-4 fill-amber-400 text-amber-400 inline" />
               </div>
-              <span className="text-[9px] font-mono uppercase tracking-wider text-slate-400 block mt-0.5 font-medium">
+              <span className="text-[11px] text-slate-400 block mt-0.5 font-medium">
                 Average Rating
               </span>
             </div>
-            <div className="space-y-1 text-[11px] font-mono">
-              <div className="text-slate-200 font-semibold flex items-center gap-1.5">
+            <div className="space-y-1 text-xs">
+              <div className="text-slate-200 font-medium flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
-                1,840+ Units Delivered
+                <span>1,840+ Units Delivered</span>
               </div>
-              <div className="text-slate-400 text-[10px] flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-                100% Pre-Encoded & Tested
+              <div className="text-slate-400 text-xs flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>100% Pre-Encoded & Tested</span>
               </div>
             </div>
           </div>

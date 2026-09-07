@@ -45,7 +45,7 @@ export interface CustomerInfo {
   notes?: string;
 }
 
-export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered';
+export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'in_production' | 'shipped' | 'delivered';
 
 export interface Order {
   id: string;
@@ -58,4 +58,13 @@ export interface Order {
   customerInfo: CustomerInfo;
   status: OrderStatus;
   estimatedDelivery: string;
+  trackingNumber?: string;
+  courier?: string;
+  trackingUrl?: string;
+  smsNotification?: {
+    sent: boolean;
+    recipient: string;
+    timestamp?: string;
+    messageId?: string;
+  };
 }

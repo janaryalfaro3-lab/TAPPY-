@@ -9,7 +9,6 @@ import { Product, CartItem, Order } from './types';
 
 import { ScrollProgressBar } from './components/ScrollProgressBar';
 import { Header } from './components/Header';
-import { FullSiteNfcBackground3D } from './components/FullSiteNfcBackground3D';
 import { HeroSection } from './components/HeroSection';
 import { TrustBanner } from './components/TrustBanner';
 import { ProductSection } from './components/ProductSection';
@@ -31,28 +30,35 @@ import { WishlistProvider } from './context/WishlistContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { WishlistModal } from './components/WishlistModal';
 import { OrderHistoryModal } from './components/OrderHistoryModal';
-import { AdminOrdersModal } from './components/AdminOrdersModal';
+import { BackToTop } from './components/BackToTop';
+import { OrderTrackingPage } from './components/OrderTrackingPage';
 
 function StorefrontApp() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
-  const [isAdminOrdersOpen, setIsAdminOrdersOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
   const [isTapDemoOpen, setIsTapDemoOpen] = useState(false);
   const [activePolicy, setActivePolicy] = useState<PolicyType | null>(null);
   const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+  const [activeTrackingOrderId, setActiveTrackingOrderId] = useState<string | null>(null);
 
   const { themeVariant } = useTheme();
   const { showCartToast, showToast } = useToast();
 
-  // Check URL query param for shared product link (e.g. ?product=acrylic-stand)
+  // Check URL query param for shared product link (?product=...) or direct tracking link (?track=... or ?order=...)
   React.useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
+      const trackParam = params.get('track') || params.get('order');
+      if (trackParam) {
+        setActiveTrackingOrderId(trackParam.toUpperCase());
+        return;
+      }
+
       const productId = params.get('product');
       if (productId) {
         const found = PRODUCTS.find((p) => p.id === productId);
@@ -65,9 +71,29 @@ function StorefrontApp() {
         }
       }
     } catch (e) {
-      console.warn('Could not read product URL param', e);
+      console.warn('Could not read product/tracking URL param', e);
     }
   }, []);
+
+  const handleOpenTrackingPage = (orderId: string) => {
+    const clean = orderId.trim().toUpperCase();
+    setActiveTrackingOrderId(clean);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('track', clean);
+      window.history.pushState({}, '', url.toString());
+    } catch (e) {}
+  };
+
+  const handleBackFromTracking = () => {
+    setActiveTrackingOrderId(null);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('track');
+      url.searchParams.delete('order');
+      window.history.replaceState({}, '', url.toString());
+    } catch (e) {}
+  };
 
   // Cart Handlers
   const handleAddToCart = (
@@ -173,14 +199,28 @@ function StorefrontApp() {
     }
   };
 
+  if (activeTrackingOrderId) {
+    return (
+      <div className={`min-h-screen text-slate-100 flex flex-col font-sans antialiased relative transition-colors duration-300 ${
+        themeVariant === 'deep-midnight' ? 'bg-slate-950 theme-deep-midnight' : 'bg-slate-900 theme-soft-slate'
+      }`}>
+        <OrderTrackingPage
+          orderId={activeTrackingOrderId}
+          onBackToStore={handleBackFromTracking}
+          onOpenChatWithOrder={(orderId) => {
+            // Can open chatbot and ask
+          }}
+        />
+        <SupportFloatingActionButton onOpenTrackingPage={handleOpenTrackingPage} />
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen text-slate-100 flex flex-col selection:bg-sky-500/30 selection:text-sky-200 font-sans antialiased relative transition-colors duration-300 ${
       themeVariant === 'deep-midnight' ? 'bg-slate-950 theme-deep-midnight' : 'bg-slate-900 theme-soft-slate'
     }`}>
-      {/* 0. Full Website 3D NFC Background & Electromagnetic Field */}
-      <FullSiteNfcBackground3D />
-
-      {/* 0.1 Viewport Scroll Progress Bar */}
+      {/* 0. Viewport Scroll Progress Bar */}
       <ScrollProgressBar />
 
       {/* 1. Header */}
@@ -189,7 +229,6 @@ function StorefrontApp() {
         onOpenCart={() => setIsCartOpen(true)}
         onOpenWishlist={() => setIsWishlistOpen(true)}
         onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
-        onOpenAdminOrders={() => setIsAdminOrdersOpen(true)}
         onNavigateToProducts={() => scrollToSection('products-section')}
         onNavigateToHowItWorks={() => scrollToSection('how-it-works-section')}
         onNavigateToImpact={() => scrollToSection('numbers-that-matter-section')}
@@ -234,7 +273,7 @@ function StorefrontApp() {
       </main>
 
       {/* Persistent Floating Action Button (FAB) for WhatsApp & Messenger Support */}
-      <SupportFloatingActionButton />
+      <SupportFloatingActionButton onOpenTrackingPage={handleOpenTrackingPage} />
 
       {/* 9. Minimal Footer */}
       <Footer
@@ -245,7 +284,6 @@ function StorefrontApp() {
         onNavigateToFaqs={() => scrollToSection('faqs-section')}
         onOpenPolicy={(policy) => setActivePolicy(policy)}
         onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
-        onOpenAdminOrders={() => setIsAdminOrdersOpen(true)}
       />
 
       {/* Modals & Drawers */}
@@ -285,6 +323,7 @@ function StorefrontApp() {
         order={confirmedOrder}
         onClose={() => setConfirmedOrder(null)}
         onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
+        onOpenTrackingPage={handleOpenTrackingPage}
         onContinueShopping={() => {
           setConfirmedOrder(null);
           scrollToSection('products-section');
@@ -319,13 +358,11 @@ function StorefrontApp() {
         onSelectProduct={(product) => setSelectedProduct(product)}
         onReorder={handleReorder}
         onNavigateToProducts={() => scrollToSection('products-section')}
+        onOpenTrackingPage={handleOpenTrackingPage}
       />
 
-      {/* Firebase Database & Admin Orders Modal */}
-      <AdminOrdersModal
-        isOpen={isAdminOrdersOpen}
-        onClose={() => setIsAdminOrdersOpen(false)}
-      />
+      {/* Floating Back to Top Button */}
+      <BackToTop />
     </div>
   );
 }

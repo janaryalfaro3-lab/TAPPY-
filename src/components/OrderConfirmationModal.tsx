@@ -14,6 +14,8 @@ import {
   Sparkles,
   ExternalLink,
   PartyPopper,
+  Smartphone,
+  Mail,
 } from 'lucide-react';
 import { Order } from '../types';
 import { ProductMockup } from './ProductMockup';
@@ -23,6 +25,7 @@ interface OrderConfirmationModalProps {
   onClose: () => void;
   onContinueShopping: () => void;
   onOpenOrderHistory?: () => void;
+  onOpenTrackingPage?: (orderId: string) => void;
 }
 
 export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
@@ -30,8 +33,10 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   onClose,
   onContinueShopping,
   onOpenOrderHistory,
+  onOpenTrackingPage,
 }) => {
   const [copiedTag, setCopiedTag] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const fireConfetti = () => {
     try {
@@ -81,6 +86,9 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
 
   if (!order) return null;
 
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tapreview.ph';
+  const trackingUrl = order.trackingUrl || `${origin}/?track=${order.id}`;
+
   const handlePrint = () => {
     window.print();
   };
@@ -89,6 +97,12 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
     navigator.clipboard?.writeText('#TAPPY');
     setCopiedTag(true);
     setTimeout(() => setCopiedTag(false), 2000);
+  };
+
+  const handleCopyTrackingLink = () => {
+    navigator.clipboard?.writeText(trackingUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   return (
@@ -114,8 +128,56 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
             Order Confirmed! 🎉
           </h2>
           <p className="text-slate-300 text-xs sm:text-sm max-w-md mx-auto leading-relaxed tracking-wide">
-            Thank you for your order. We have received your payment and are preparing your hardware.
+            Thank you for your order. We have received your payment and are pre-programming your hardware.
           </p>
+        </div>
+
+        {/* Unique Tracking Link Card & Automated Notifications */}
+        <div className="p-4 bg-slate-950/90 border border-sky-500/30 rounded-2xl space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono font-bold text-sky-400 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" />
+              Unique Tracking Link:
+            </span>
+            <span className="text-[10px] font-mono text-slate-400">Sent via Email & SMS</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              readOnly
+              value={trackingUrl}
+              className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 font-mono truncate focus:outline-none"
+            />
+            <button
+              onClick={handleCopyTrackingLink}
+              className="px-3.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shrink-0"
+            >
+              {copiedLink ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-slate-950" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy Link</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Automated Alerts */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-800/80 text-[11px] font-mono text-slate-300">
+            <div className="flex items-center gap-2">
+              <Smartphone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span className="truncate">SMS sent to <strong className="text-white">{order.customerInfo.phone}</strong></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Mail className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+              <span className="truncate">Email sent to <strong className="text-white">{order.customerInfo.email}</strong></span>
+            </div>
+          </div>
         </div>
 
         {/* Order Meta Pill */}
@@ -127,6 +189,10 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
           <div>
             <span className="text-slate-400 block text-[10px] uppercase tracking-wider mb-0.5 font-semibold">Date</span>
             <span className="text-slate-200 font-medium">{order.createdAt}</span>
+          </div>
+          <div>
+            <span className="text-slate-400 block text-[10px] uppercase tracking-wider mb-0.5 font-semibold">Status Stage</span>
+            <span className="font-bold text-amber-400 uppercase">Processing & Encoding</span>
           </div>
           <div>
             <span className="text-slate-400 block text-[10px] uppercase tracking-wider mb-0.5 font-semibold">Payment</span>
@@ -216,7 +282,7 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 text-[10px] font-mono uppercase font-bold tracking-wider">
-                <Sparkles className="w-3 h-3 text-sky-400" />
+                <Sparkles className="w-3.5 h-3.5 text-sky-400" />
                 Post-Delivery Spotlight
               </div>
               <h3 className="font-display text-base sm:text-lg font-bold text-white tracking-tight">
@@ -327,7 +393,18 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
             Print Receipt
           </button>
 
-          {onOpenOrderHistory && (
+          {onOpenTrackingPage ? (
+            <button
+              onClick={() => {
+                onClose();
+                onOpenTrackingPage(order.id);
+              }}
+              className="w-full sm:w-auto px-5 py-3 text-[11px] uppercase tracking-[0.14em] font-bold text-slate-950 bg-sky-400 hover:bg-sky-300 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-lg shadow-sky-500/20"
+            >
+              <Truck className="w-4 h-4 text-slate-950" />
+              <span>Track Order Live</span>
+            </button>
+          ) : onOpenOrderHistory ? (
             <button
               onClick={() => {
                 onClose();
@@ -338,21 +415,20 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
               <Truck className="w-3.5 h-3.5 text-sky-400" />
               Track Order
             </button>
-          )}
+          ) : null}
 
           <button
             onClick={() => {
               onClose();
               onContinueShopping();
             }}
-            className="w-full sm:flex-1 py-3.5 text-[11px] uppercase tracking-[0.14em] font-extrabold text-slate-950 bg-white hover:bg-sky-400 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer active:scale-95 shadow-xl"
+            className="w-full sm:flex-1 py-3.5 text-[11px] uppercase tracking-[0.14em] font-extrabold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer active:scale-95 shadow-xl"
           >
             <span>Continue to Store</span>
-            <ArrowRight className="w-3.5 h-3.5 text-slate-950" />
+            <ArrowRight className="w-3.5 h-3.5 text-white" />
           </button>
         </div>
       </div>
     </div>
   );
 };
-

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Check } from 'lucide-react';
 import { Product } from '../types';
 import { ProductMockup } from './ProductMockup';
 import { useWishlist } from '../context/WishlistContext';
@@ -16,7 +16,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onAddToCart,
 }) => {
   const { isWishlisted, toggleWishlist } = useWishlist();
-  const isAcrylic = product.material.toLowerCase().includes('acrylic');
   const wishlisted = isWishlisted(product.id);
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
@@ -28,84 +27,78 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     <div
       id={`product-card-${product.id}`}
       onClick={() => onSelectProduct(product)}
-      className="group relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/70 rounded-2xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-2xl hover:shadow-sky-500/20 hover:border-sky-400 cursor-pointer ring-1 ring-white/10 hover:ring-sky-400/40"
+      className="group relative bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
     >
-      {/* Product Sample Badge & Wishlist Heart */}
-      <div className="flex items-center justify-between mb-4">
-        <span
-          className={`text-[10px] font-mono uppercase tracking-wider px-3 py-1 rounded-full font-bold shadow-2xs border ${
-            isAcrylic
-              ? 'bg-sky-500/15 text-sky-300 border-sky-400/40'
-              : 'bg-indigo-500/15 text-indigo-300 border-indigo-400/40'
-          }`}
-        >
-          {product.badge || (isAcrylic ? 'Acrylic Specimen' : 'PVC Specimen')}
-        </span>
-
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono font-semibold text-slate-300 bg-slate-800/80 border border-slate-700/60 px-2 py-0.5 rounded-md">
-            {product.size}
+      {/* Top Header: Badge, Dimensions & Wishlist */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xs px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700 font-medium">
+            {product.badge || product.format}
           </span>
 
-          {/* Heart / Wishlist Toggle */}
-          <button
-            id={`wishlist-toggle-${product.id}`}
-            type="button"
-            onClick={handleToggleWishlist}
-            className={`p-2 rounded-xl border transition-all cursor-pointer active:scale-85 ${
-              wishlisted
-                ? 'bg-rose-500/20 border-rose-500/50 text-rose-400 shadow-md shadow-rose-500/20 scale-105'
-                : 'bg-slate-800/80 hover:bg-slate-700/90 border-slate-700/70 text-slate-400 hover:text-rose-300'
-            }`}
-            title={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-            aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-          >
-            <Heart
-              className={`w-3.5 h-3.5 transition-colors ${
-                wishlisted ? 'fill-rose-500 text-rose-500' : 'text-slate-300 hover:text-rose-400'
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">
+              {product.size}
+            </span>
+
+            <button
+              id={`wishlist-toggle-${product.id}`}
+              type="button"
+              onClick={handleToggleWishlist}
+              className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+                wishlisted
+                  ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                  : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:text-white'
               }`}
-            />
-          </button>
+              title={wishlisted ? 'Remove from saved' : 'Save item'}
+              aria-label={wishlisted ? 'Remove from saved' : 'Save item'}
+            >
+              <Heart
+                className={`w-3.5 h-3.5 ${
+                  wishlisted ? 'fill-rose-500 text-rose-500' : 'text-slate-400'
+                }`}
+              />
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Realistic Product Visual Showcase matching the photo colors & design */}
-      <div className="relative aspect-[4/3] bg-gradient-to-b from-slate-950/60 to-slate-900/80 border border-slate-800 rounded-xl mb-6 flex items-center justify-center p-4 overflow-hidden group-hover:border-sky-500/50 transition-colors">
-        <div className="transform group-hover:scale-[1.08] transition-transform duration-500 ease-out">
-          <ProductMockup format={product.format} />
+        {/* Product Visual Mockup */}
+        <div className="relative aspect-[4/3] bg-slate-950/60 border border-slate-800/80 rounded-lg mb-5 flex items-center justify-center p-4 overflow-hidden">
+          <div className="transform group-hover:scale-105 transition-transform duration-300 ease-out">
+            <ProductMockup format={product.format} />
+          </div>
         </div>
-      </div>
 
-      {/* Product Details */}
-      <div className="space-y-2">
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 className="font-display text-lg font-bold text-white tracking-tight group-hover:text-sky-300 transition-colors">
+        {/* Title and Description */}
+        <div className="space-y-1.5">
+          <h3 className="text-base font-semibold text-white group-hover:text-sky-400 transition-colors">
             {product.name}
           </h3>
+          <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
+            {product.description}
+          </p>
         </div>
 
-        {/* Description */}
-        <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
-          {product.description}
-        </p>
-
-        {/* Material Specs */}
-        <div className="pt-2 text-[11px] font-mono text-slate-400 flex items-center gap-1.5 flex-wrap">
-          <span className="font-medium text-slate-200">{product.material}</span>
-          <span>·</span>
-          <span className="text-sky-400 font-bold">NTAG213 NFC</span>
-          <span>·</span>
-          <span className="text-slate-400">QR Fallback</span>
+        {/* Features Checklist */}
+        <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-1 text-xs text-slate-400">
+          <div className="flex items-center gap-1.5">
+            <Check className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+            <span>NTAG213 contactless chip</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Check className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+            <span>Printed QR code fallback</span>
+          </div>
         </div>
       </div>
 
-      {/* Pricing & Add to Cart Action */}
-      <div className="pt-6 mt-6 border-t border-slate-800 flex items-center justify-between">
+      {/* Pricing & Add to Cart */}
+      <div className="pt-5 mt-5 border-t border-slate-800 flex items-center justify-between">
         <div>
-          <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 block font-semibold">
-            Price
+          <span className="text-[11px] text-slate-400 block font-medium">
+            Unit Price
           </span>
-          <span className="font-display text-xl font-black text-white">
+          <span className="text-lg font-bold text-white">
             ₱{product.price.toLocaleString()}
           </span>
         </div>
@@ -116,7 +109,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             e.stopPropagation();
             onAddToCart(product, 1, e);
           }}
-          className="bg-white hover:bg-sky-400 text-slate-950 px-4 py-2.5 rounded-xl text-[11px] uppercase tracking-[0.12em] font-extrabold transition-all cursor-pointer shadow-lg hover:shadow-sky-400/30 active:scale-95 border border-white"
+          className="bg-white hover:bg-slate-100 text-slate-950 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer border border-white active:scale-98"
         >
           Add to Cart
         </button>

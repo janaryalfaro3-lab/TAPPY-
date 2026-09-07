@@ -300,9 +300,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 </div>
                 <div className="space-y-1">
                   <span className="text-slate-400 block text-[10px] uppercase tracking-wider font-semibold">
-                    Material
+                    Hardware Format
                   </span>
-                  <span className="text-slate-100 font-bold">{product.material}</span>
+                  <span className="text-slate-100 font-bold">{product.format}</span>
                 </div>
                 <div className="space-y-1">
                   <span className="text-slate-400 block text-[10px] uppercase tracking-wider font-semibold">
