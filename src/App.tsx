@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { PRODUCTS } from './data/products';
+import { BUNDLE_OFFERS, convertBundleToProduct } from './data/bundles';
 import { Product, CartItem, Order } from './types';
 
 import { ScrollProgressBar } from './components/ScrollProgressBar';
@@ -12,6 +13,7 @@ import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { TrustBanner } from './components/TrustBanner';
 import { ProductSection } from './components/ProductSection';
+import { BundleOffersSection } from './components/BundleOffersSection';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { HowItWorksSection } from './components/HowItWorksSection';
 import { NumbersThatMatterSection } from './components/NumbersThatMatterSection';
@@ -29,7 +31,6 @@ import { ToastProvider, useToast } from './components/ToastProvider';
 import { WishlistProvider } from './context/WishlistContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { WishlistModal } from './components/WishlistModal';
-import { OrderHistoryModal } from './components/OrderHistoryModal';
 import { BackToTop } from './components/BackToTop';
 import { OrderTrackingPage } from './components/OrderTrackingPage';
 
@@ -37,7 +38,21 @@ function StorefrontApp() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
-  const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
+  const handleOpenOrderTracking = () => {
+    const stored = localStorage.getItem('tapreviewnfc_order_history');
+    let latestId = '';
+    if (stored) {
+      try {
+        const list = JSON.parse(stored);
+        if (Array.isArray(list) && list.length > 0) {
+          latestId = list[0].id;
+        }
+      } catch {
+        // Fallback
+      }
+    }
+    handleOpenTrackingPage(latestId || 'TR-748921');
+  };
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
@@ -61,11 +76,13 @@ function StorefrontApp() {
 
       const productId = params.get('product');
       if (productId) {
-        const found = PRODUCTS.find((p) => p.id === productId);
+        const found =
+          PRODUCTS.find((p) => p.id === productId) ||
+          BUNDLE_OFFERS.map(convertBundleToProduct).find((p) => p.id === productId);
         if (found) {
           setSelectedProduct(found);
           setTimeout(() => {
-            const el = document.getElementById('products-section');
+            const el = document.getElementById(found.isBundle ? 'bundle-offers-section' : 'products-section');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
           }, 300);
         }
@@ -201,9 +218,7 @@ function StorefrontApp() {
 
   if (activeTrackingOrderId) {
     return (
-      <div className={`min-h-screen text-slate-100 flex flex-col font-sans antialiased relative transition-colors duration-300 ${
-        themeVariant === 'deep-midnight' ? 'bg-slate-950 theme-deep-midnight' : 'bg-slate-900 theme-soft-slate'
-      }`}>
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased relative">
         <OrderTrackingPage
           orderId={activeTrackingOrderId}
           onBackToStore={handleBackFromTracking}
@@ -217,9 +232,7 @@ function StorefrontApp() {
   }
 
   return (
-    <div className={`min-h-screen text-slate-100 flex flex-col selection:bg-sky-500/30 selection:text-sky-200 font-sans antialiased relative transition-colors duration-300 ${
-      themeVariant === 'deep-midnight' ? 'bg-slate-950 theme-deep-midnight' : 'bg-slate-900 theme-soft-slate'
-    }`}>
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-sky-500/20 selection:text-sky-900 font-sans antialiased relative">
       {/* 0. Viewport Scroll Progress Bar */}
       <ScrollProgressBar />
 
@@ -228,8 +241,9 @@ function StorefrontApp() {
         cartItems={cartItems}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenWishlist={() => setIsWishlistOpen(true)}
-        onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
+        onOpenOrderHistory={handleOpenOrderTracking}
         onNavigateToProducts={() => scrollToSection('products-section')}
+        onNavigateToBundles={() => scrollToSection('bundle-offers-section')}
         onNavigateToHowItWorks={() => scrollToSection('how-it-works-section')}
         onNavigateToImpact={() => scrollToSection('numbers-that-matter-section')}
         onNavigateToReviews={() => scrollToSection('testimonials-section')}
@@ -252,6 +266,13 @@ function StorefrontApp() {
           products={PRODUCTS}
           onAddToCart={(product, qty = 1) => handleAddToCart(product, qty)}
           onSelectProduct={(product) => setSelectedProduct(product)}
+        />
+
+        {/* 4.5. Eye-Catchy Value Bundle Offers (Starter Kit, Dining Pack, Pro Suite) */}
+        <BundleOffersSection
+          onAddBundleToCart={(product, qty = 1) => handleAddToCart(product, qty)}
+          onInstantBuyBundle={(product) => handleBuyNow(product, 1)}
+          onSelectBundleDetail={(product) => setSelectedProduct(product)}
         />
 
         {/* 5. How It Works (3 clear human steps) */}
@@ -278,12 +299,13 @@ function StorefrontApp() {
       {/* 9. Minimal Footer */}
       <Footer
         onNavigateToProducts={() => scrollToSection('products-section')}
+        onNavigateToBundles={() => scrollToSection('bundle-offers-section')}
         onNavigateToHowItWorks={() => scrollToSection('how-it-works-section')}
         onNavigateToImpact={() => scrollToSection('numbers-that-matter-section')}
         onNavigateToReviews={() => scrollToSection('testimonials-section')}
         onNavigateToFaqs={() => scrollToSection('faqs-section')}
         onOpenPolicy={(policy) => setActivePolicy(policy)}
-        onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
+        onOpenOrderHistory={handleOpenOrderTracking}
       />
 
       {/* Modals & Drawers */}
@@ -322,7 +344,7 @@ function StorefrontApp() {
       <OrderConfirmationModal
         order={confirmedOrder}
         onClose={() => setConfirmedOrder(null)}
-        onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
+        onOpenOrderHistory={handleOpenOrderTracking}
         onOpenTrackingPage={handleOpenTrackingPage}
         onContinueShopping={() => {
           setConfirmedOrder(null);
@@ -347,18 +369,8 @@ function StorefrontApp() {
         isOpen={isWishlistOpen}
         onClose={() => setIsWishlistOpen(false)}
         onSelectProduct={(product) => setSelectedProduct(product)}
-        onAddToCart={(product, qty, e) => handleAddToCart(product, qty)}
+        onAddToCart={(product, qty) => handleAddToCart(product, qty)}
         onNavigateToProducts={() => scrollToSection('products-section')}
-      />
-
-      {/* Local Storage Order History & Live Tracking Modal */}
-      <OrderHistoryModal
-        isOpen={isOrderHistoryOpen}
-        onClose={() => setIsOrderHistoryOpen(false)}
-        onSelectProduct={(product) => setSelectedProduct(product)}
-        onReorder={handleReorder}
-        onNavigateToProducts={() => scrollToSection('products-section')}
-        onOpenTrackingPage={handleOpenTrackingPage}
       />
 
       {/* Floating Back to Top Button */}

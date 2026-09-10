@@ -1,26 +1,39 @@
 import { Product } from '../types';
 
-import heroImg from '../assets/images/hero_nfc_products_1787383054839.jpg';
-import standImg from '../assets/images/acrylic_stand_1787383072787.jpg';
-import tagImg from '../assets/images/acrylic_tag_1787383087133.jpg';
-import cardImg from '../assets/images/pvc_card_1787383105360.jpg';
-import stickerImg from '../assets/images/pvc_sticker_1787383126222.jpg';
-import beautyImg from '../assets/images/beauty_macro_details_1787383143898.jpg';
+import heroImg from '../assets/images/lineup_tabletop_16_9.jpg';
+import standImg from '../assets/images/stand_individual_look_1789054874490.jpg';
+import tagImg from '../assets/images/tag_individual_look_1789054891888.jpg';
+import cardImg from '../assets/images/card_individual_look_1789054908528.jpg';
+import stickerImg from '../assets/images/sticker_individual_look_1789054924469.jpg';
+import suiteBundleImg from '../assets/images/lineup_tabletop_16_9.jpg';
+import starterBundleImg from '../assets/images/tappy_bundle_starter_hd.jpg';
+import businessBundleImg from '../assets/images/tappy_bundle_business_hd.jpg';
+import tabletopImg from '../assets/images/lineup_tabletop_16_9.jpg';
+import posterImg from '../assets/images/master_full_banner.jpg';
+import logoMintImg from '../assets/images/tappy_mint_logo.png';
+import logoTransparentImg from '../assets/images/tappy_logo_transparent.png';
 
 export const ASSET_IMAGES = {
   hero: heroImg,
+  poster: posterImg,
   stand: standImg,
   tag: tagImg,
   card: cardImg,
   sticker: stickerImg,
-  beauty: beautyImg,
+  bundleSuite: suiteBundleImg,
+  bundleStarter: starterBundleImg,
+  bundleBusiness: businessBundleImg,
+  beauty: tabletopImg,
+  tabletop: tabletopImg,
+  logoMint: logoMintImg,
+  logoTransparent: logoTransparentImg,
 };
 
 export const PRODUCTS: Product[] = [
   {
     id: 'acrylic-stand',
-    name: 'Acrylic Google Review Standee',
-    tagline: '90 × 110 mm · Acrylic (with NTAG213 NFC)',
+    name: 'TMY-1 Premium Stand (Acrylic)',
+    tagline: '90 × 110 mm · Crystal Acrylic (with NTAG213 NFC)',
     description: 'A premium clear acrylic countertop display stand for reception desks, cafés, restaurants, salons and hotel lobbies.',
     size: '90 × 110 mm',
     material: 'Acrylic',
@@ -29,13 +42,13 @@ export const PRODUCTS: Product[] = [
     features: ['90 × 110 mm', 'Crystal Acrylic', 'NTAG213 NFC', 'QR Code Fallback'],
     price: 1490,
     image: standImg,
-    badge: '2 Acrylic Samples',
+    badge: 'TMY-1 Premium',
     idealFor: 'Countertops, reception desks, checkout desks, hotel lobbies',
   },
   {
     id: 'acrylic-tag',
-    name: 'Acrylic NFC Tag (Square)',
-    tagline: '40 × 40 mm · Acrylic (with NTAG213 NFC)',
+    name: 'TMY-2 Mini Stand (Acrylic Tag)',
+    tagline: '40 × 40 mm · Crystal Acrylic (with NTAG213 NFC)',
     description: 'A compact square clear acrylic review standee with NTAG213 NFC chip and QR code for minimal counter setups.',
     size: '40 × 40 mm',
     material: 'Acrylic',
@@ -44,13 +57,13 @@ export const PRODUCTS: Product[] = [
     features: ['40 × 40 mm', 'Square Acrylic', 'NTAG213 NFC', 'QR Code'],
     price: 590,
     image: tagImg,
-    badge: '2 Acrylic Samples',
+    badge: 'TMY-2 Mini',
     idealFor: 'Counters, POS terminals, compact dining tables',
   },
   {
     id: 'pvc-card',
-    name: 'PVC NFC Business Card',
-    tagline: '85.6 × 54 mm · PVC (with NTAG213 NFC)',
+    name: 'TMY-3 NFC Card (PVC Business Card)',
+    tagline: '85.6 × 54 mm · Matte PVC (with NTAG213 NFC)',
     description: 'A slim, durable matte PVC card with rounded corners. Easy to hand to customers, slide into bill folders, or set at checkout.',
     size: '85.6 × 54 mm',
     material: 'PVC',
@@ -59,12 +72,12 @@ export const PRODUCTS: Product[] = [
     features: ['85.6 × 54 mm', 'Matte PVC', 'NTAG213 NFC', 'QR Code'],
     price: 490,
     image: cardImg,
-    badge: '2 PVC Samples',
+    badge: 'TMY-3 Card',
     idealFor: 'Checkout counters, bill presenters, staff handouts',
   },
   {
     id: 'pvc-sticker',
-    name: 'PVC NFC Sticker (Round)',
+    name: 'TMY-4 NFC Tag (Round PVC Sticker)',
     tagline: '40 × 40 mm · PVC (with NTAG213 NFC)',
     description: 'A compact circular adhesive NFC sticker with strong backing for dining tables, glass doors, takeout menus, and counters.',
     size: '40 × 40 mm (Round)',
@@ -74,7 +87,7 @@ export const PRODUCTS: Product[] = [
     features: ['40 × 40 mm (Round)', 'Durable PVC', 'NTAG213 NFC', 'QR Code', 'Strong Adhesive'],
     price: 350,
     image: stickerImg,
-    badge: '2 PVC Samples',
+    badge: 'TMY-4 Tag',
     idealFor: 'Tables, counters, doors, menus, window displays',
   }
 ];

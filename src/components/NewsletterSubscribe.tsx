@@ -30,14 +30,13 @@ export const NewsletterSubscribe: React.FC<NewsletterSubscribeProps> = ({ classN
       showToast({
         type: 'warning',
         title: 'Valid Email Required',
-        message: 'Please enter a valid email address to receive TAPPY hardware launch updates.',
+        message: 'Please enter a valid email address to receive TAPPY hardware updates.',
       });
       return;
     }
 
     setIsSubmitting(true);
 
-    // Simulate instant network submission
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSubscribed(true);
@@ -53,31 +52,27 @@ export const NewsletterSubscribe: React.FC<NewsletterSubscribeProps> = ({ classN
         message: `You're in! We'll notify ${cleanEmail} when new NFC review hardware formats launch.`,
       });
       setEmail('');
-    }, 600);
+    }, 500);
   };
 
   return (
     <div
       id="newsletter-subscribe-section"
-      className={`relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900/90 via-slate-950/95 to-slate-900/90 border border-slate-800/80 p-6 sm:p-8 backdrop-blur-xl ${className}`}
+      className={`relative overflow-hidden rounded-2xl bg-slate-50 border border-slate-200 p-6 sm:p-8 ${className}`}
     >
-      {/* Background ambient lighting */}
-      <div className="absolute -top-16 -right-16 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
       <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         {/* Text & Header */}
         <div className="max-w-xl space-y-2">
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-[10px] font-mono font-bold uppercase tracking-wider">
-            <Sparkles className="w-3 h-3 text-sky-400" />
-            <span>Product Drops & Firmware Updates</span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-slate-700 text-xs font-semibold shadow-2xs">
+            <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+            <span>Product Updates & Hardware Releases</span>
           </div>
 
-          <h3 className="font-display text-lg sm:text-xl font-bold text-white tracking-tight">
-            Stay Ahead on New NFC Hardware Launches
+          <h3 className="font-display text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+            Stay Updated on New NFC Form Factors
           </h3>
 
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
             Get early access to upcoming TAPPY form factors, custom branding runs, and conversion strategies for Philippine businesses.
           </p>
         </div>
@@ -88,18 +83,18 @@ export const NewsletterSubscribe: React.FC<NewsletterSubscribeProps> = ({ classN
             {isSubscribed ? (
               <motion.div
                 key="subscribed-state"
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300"
+                exit={{ opacity: 0, scale: 0.98 }}
+                className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800"
               >
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div className="text-xs">
-                  <p className="font-bold text-white">You're subscribed!</p>
-                  <p className="text-emerald-300/90 text-[11px] font-mono">
-                    VIP launch notifications active. No spam ever.
+                  <p className="font-bold text-slate-900">You're subscribed!</p>
+                  <p className="text-emerald-700 text-[11px]">
+                    Updates active. No spam, ever.
                   </p>
                 </div>
               </motion.div>
@@ -107,10 +102,10 @@ export const NewsletterSubscribe: React.FC<NewsletterSubscribeProps> = ({ classN
               <motion.form
                 key="subscribe-form"
                 onSubmit={handleSubmit}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-2.5"
+                exit={{ opacity: 0, y: -8 }}
+                className="space-y-2"
               >
                 <div className="relative flex items-center">
                   <div className="absolute left-3.5 pointer-events-none text-slate-400">
@@ -123,25 +118,25 @@ export const NewsletterSubscribe: React.FC<NewsletterSubscribeProps> = ({ classN
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your business email..."
                     disabled={isSubmitting}
-                    className="w-full pl-10 pr-28 py-3 bg-slate-950/80 hover:bg-slate-950 focus:bg-slate-950 border border-slate-700/80 focus:border-sky-400 rounded-xl text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 transition-all font-sans shadow-inner"
+                    className="w-full pl-10 pr-24 py-2.5 bg-white focus:bg-white border border-slate-200 focus:border-slate-400 rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-colors shadow-2xs"
                   />
                   <button
                     id="newsletter-submit-btn"
                     type="submit"
                     disabled={isSubmitting}
-                    className="absolute right-1.5 px-3.5 py-2 bg-white hover:bg-sky-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-lg transition-all cursor-pointer shadow-md hover:shadow-sky-400/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 font-mono"
+                    className="absolute right-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 shadow-2xs"
                   >
-                    <span>{isSubmitting ? 'Joining...' : 'Join'}</span>
+                    <span>{isSubmitting ? 'Joining...' : 'Subscribe'}</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono px-1">
+                <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
                   <span className="flex items-center gap-1">
-                    <ShieldCheck className="w-3 h-3 text-sky-400" />
-                    Zero spam · Instant 1-click unsubscribe
+                    <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
+                    Zero spam · Instant unsubscribe anytime
                   </span>
-                  <span className="text-slate-400">Monthly digest</span>
+                  <span>Monthly digest</span>
                 </div>
               </motion.form>
             )}

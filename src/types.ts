@@ -14,6 +14,10 @@ export interface Product {
   image: string;
   badge?: string;
   idealFor: string;
+  isBundle?: boolean;
+  bundleItems?: BundleItemDetail[];
+  originalPrice?: number;
+  savings?: number;
 }
 
 export interface CartItem {
@@ -45,7 +49,36 @@ export interface CustomerInfo {
   notes?: string;
 }
 
-export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'in_production' | 'shipped' | 'delivered';
+export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'in_production' | 'shipped' | 'delivered' | 'cancelled';
+
+export interface BundleItemDetail {
+  productId: string;
+  productName: string;
+  quantity: number;
+  format: ProductFormat;
+  description: string;
+}
+
+export interface BundleOffer {
+  id: string;
+  title: string;
+  subtitle: string;
+  badge?: string;
+  originalPrice: number;
+  discountedPrice: number;
+  savings: number;
+  discountPercentage: number;
+  description: string;
+  itemsIncluded: BundleItemDetail[];
+  highlights: string[];
+  idealFor: string;
+  isPopular?: boolean;
+  accentGradient: string;
+  category?: 'kit' | 'bulk';
+  unitCount?: number;
+  perPiecePrice?: number;
+  skuCode?: string;
+}
 
 export interface Order {
   id: string;

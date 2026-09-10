@@ -1,57 +1,34 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 
-export type DarkVariant = 'deep-midnight' | 'soft-slate';
+export type ThemeVariant = 'professional';
 
 interface ThemeContextType {
-  themeVariant: DarkVariant;
-  setThemeVariant: (variant: DarkVariant) => void;
+  themeVariant: ThemeVariant;
+  setThemeVariant: (variant: ThemeVariant) => void;
   toggleThemeVariant: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_STORAGE_KEY = 'tappynfc_dark_variant';
-
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [themeVariant, setThemeVariantState] = useState<DarkVariant>(() => {
-    try {
-      const saved = localStorage.getItem(THEME_STORAGE_KEY);
-      if (saved === 'soft-slate' || saved === 'deep-midnight') {
-        return saved;
-      }
-    } catch {
-      // fallback
-    }
-    return 'deep-midnight';
-  });
-
-  const setThemeVariant = (variant: DarkVariant) => {
-    setThemeVariantState(variant);
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, variant);
-    } catch (e) {
-      console.warn('Failed to save theme preference', e);
-    }
-  };
-
-  const toggleThemeVariant = () => {
-    setThemeVariant(themeVariant === 'deep-midnight' ? 'soft-slate' : 'deep-midnight');
-  };
+  const themeVariant: ThemeVariant = 'professional';
 
   useEffect(() => {
     const root = document.documentElement;
-    if (themeVariant === 'soft-slate') {
-      root.classList.add('theme-soft-slate');
-      root.classList.remove('theme-deep-midnight');
-      document.body.classList.add('theme-soft-slate');
-      document.body.classList.remove('theme-deep-midnight');
-    } else {
-      root.classList.add('theme-deep-midnight');
-      root.classList.remove('theme-soft-slate');
-      document.body.classList.add('theme-deep-midnight');
-      document.body.classList.remove('theme-soft-slate');
+    // Cleanly purge any legacy dark midnight classes
+    root.classList.remove('theme-deep-midnight', 'theme-soft-slate');
+    document.body.classList.remove('theme-deep-midnight', 'theme-soft-slate');
+    root.classList.add('theme-professional');
+    document.body.classList.add('theme-professional');
+    try {
+      localStorage.removeItem('tappynfc_dark_variant');
+    } catch {
+      // safe ignore
     }
-  }, [themeVariant]);
+  }, []);
+
+  const setThemeVariant = () => {};
+  const toggleThemeVariant = () => {};
 
   return (
     <ThemeContext.Provider value={{ themeVariant, setThemeVariant, toggleThemeVariant }}>

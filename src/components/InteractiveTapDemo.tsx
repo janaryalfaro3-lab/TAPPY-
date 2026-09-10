@@ -31,7 +31,7 @@ export const InteractiveTapDemo: React.FC<InteractiveTapDemoProps> = ({ isOpen, 
     setTimeout(() => {
       setTapped(true);
       setIsTapping(false);
-    }, 600);
+    }, 500);
   };
 
   const handleReset = () => {
@@ -43,62 +43,62 @@ export const InteractiveTapDemo: React.FC<InteractiveTapDemoProps> = ({ isOpen, 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-slate-950/85 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-slate-900/60 backdrop-blur-xs"
       onClick={onClose}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 12 }}
+        initial={{ opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className="relative w-full max-w-2xl bg-slate-900 border border-slate-700/80 shadow-2xl rounded-3xl overflow-hidden p-6 md:p-8 space-y-6 text-white ring-1 ring-white/10"
+        exit={{ opacity: 0, scale: 0.96 }}
+        transition={{ duration: 0.25 }}
+        className="relative w-full max-w-2xl bg-white border border-slate-200 shadow-2xl rounded-2xl overflow-hidden p-6 md:p-8 space-y-6 text-slate-900"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Prominent Close / Exit Button */}
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 px-3 py-1.5 text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-full border border-slate-700 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-sm"
+          className="absolute top-4 right-4 px-3 py-1.5 text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold shadow-2xs"
           aria-label="Exit Simulator"
         >
           <X className="w-3.5 h-3.5" />
-          <span>Exit</span>
+          <span>Close</span>
         </button>
 
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-500/10 border border-sky-500/30 text-sky-400 text-[10px] uppercase font-mono tracking-widest font-bold rounded-full">
-            <Radio className="w-3 h-3 animate-pulse text-sky-400" />
-            Interactive Tap Simulator
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 bg-sky-50 border border-sky-200 text-sky-800 text-xs font-semibold rounded-full">
+            <Radio className="w-3.5 h-3.5 text-sky-600" />
+            <span>Interactive NFC Simulator</span>
           </div>
-          <h3 className="font-display text-2xl font-extrabold tracking-tight text-white">
+          <h3 className="font-display text-2xl font-bold tracking-tight text-slate-900">
             Experience the One-Tap Flow
           </h3>
-          <p className="text-xs text-slate-300 max-w-md mx-auto tracking-wide">
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
             Click on the Acrylic Standee below to simulate tapping an iPhone or Android smartphone within 2–4 cm.
           </p>
         </div>
 
         {/* Visual Stage */}
-        <div className="relative h-96 bg-slate-950/80 border border-slate-800 rounded-2xl flex items-center justify-center overflow-hidden [perspective:1000px] p-4">
+        <div className="relative h-96 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center overflow-hidden [perspective:1000px] p-4">
           {!tapped ? (
             /* Idle Stand / Prompt to Tap */
             <div
               onClick={handleTap}
               className="flex flex-col items-center cursor-pointer group p-4 text-center space-y-4 select-none relative z-10"
             >
-              {/* True Product Mockup */}
-              <div className="relative [transform-style:preserve-3d] group-hover:[transform:rotateX(4deg)_scale(1.04)] transition-transform duration-300">
+              {/* Product Mockup */}
+              <div className="relative [transform-style:preserve-3d] group-hover:[transform:rotateX(4deg)_scale(1.02)] transition-transform duration-300">
                 <ProductMockup format="stand" />
 
                 {/* Approaching Phone during click */}
                 {isTapping && (
                   <motion.div
-                    initial={{ y: -120, opacity: 0, rotateZ: -15 }}
+                    initial={{ y: -100, opacity: 0, rotateZ: -10 }}
                     animate={{ y: 20, opacity: 1, rotateZ: 0 }}
-                    transition={{ duration: 0.4, ease: 'easeOut' }}
-                    className="absolute -top-6 -right-12 w-28 h-48 bg-slate-900 border-2 border-sky-400 rounded-2xl shadow-xl p-2.5 z-30 flex flex-col items-center justify-center text-center"
+                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                    className="absolute -top-6 -right-12 w-28 h-44 bg-slate-900 border-2 border-sky-500 rounded-2xl shadow-xl p-2.5 z-30 flex flex-col items-center justify-center text-center text-white"
                   >
-                    <Radio className="w-8 h-8 animate-ping text-sky-400" />
-                    <span className="text-[9px] font-mono text-sky-300 font-bold mt-2">
+                    <Radio className="w-7 h-7 animate-ping text-sky-400" />
+                    <span className="text-[10px] font-bold text-sky-300 mt-2">
                       NFC DETECTED
                     </span>
                   </motion.div>
@@ -106,55 +106,55 @@ export const InteractiveTapDemo: React.FC<InteractiveTapDemoProps> = ({ isOpen, 
               </div>
 
               <div className="space-y-1 pt-2">
-                <span className="text-xs uppercase tracking-wider font-bold text-slate-950 bg-white hover:bg-slate-200 rounded-xl px-5 py-2.5 transition-colors inline-flex items-center gap-2 shadow-sm cursor-pointer">
-                  <Radio className="w-3.5 h-3.5 text-sky-500" />
-                  {isTapping ? 'Reading NTAG213 Chip...' : 'Click to Tap Phone on Stand'}
+                <span className="text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl px-5 py-2.5 transition-colors inline-flex items-center gap-2 shadow-xs cursor-pointer">
+                  <Radio className="w-3.5 h-3.5 text-sky-400" />
+                  {isTapping ? 'Reading NTAG213 Chip...' : 'Click to Simulate Tap'}
                 </span>
-                <span className="text-[11px] text-slate-400 block font-mono">
-                  No app required · Opens Google Maps in ~1s
+                <span className="text-[11px] text-slate-500 block">
+                  Zero app install · Opens Google Maps profile in ~1s
                 </span>
               </div>
             </div>
           ) : (
             /* Tapped State: Review Prompt */
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.35 }}
-              className="w-full max-w-sm p-6 bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl relative z-10 text-white"
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-sm p-6 bg-white border border-slate-200 rounded-xl shadow-lg relative z-10 text-slate-900"
             >
               {!submitted ? (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div>
-                      <h4 className="text-xs font-bold text-white">
+                      <h4 className="text-xs font-bold text-slate-900">
                         Your Business Name
                       </h4>
-                      <p className="text-[10px] text-sky-400 font-medium">
+                      <p className="text-[11px] text-sky-700 font-medium">
                         Google Maps Verified
                       </p>
                     </div>
-                    <span className="px-2 py-0.5 bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[9px] font-mono rounded font-bold">
+                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] rounded font-semibold">
                       Live Modal
                     </span>
                   </div>
 
-                  <div className="text-center py-2 space-y-2 border-y border-slate-800 bg-slate-950/60 rounded-xl p-3">
-                    <p className="text-xs text-slate-300 font-medium">
+                  <div className="text-center py-2 space-y-2 border-y border-slate-100 bg-slate-50 rounded-lg p-3">
+                    <p className="text-xs text-slate-600 font-medium">
                       Rate your experience on Google
                     </p>
-                    <div className="flex items-center justify-center gap-1.5 text-[#FBBC05]">
+                    <div className="flex items-center justify-center gap-1.5 text-amber-400">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
                           key={star}
                           onClick={() => setSelectedStars(star)}
-                          className="p-1 hover:scale-125 transition-transform cursor-pointer"
+                          className="p-1 hover:scale-115 transition-transform cursor-pointer"
                         >
                           <Star
                             className={`w-6 h-6 ${
                               star <= selectedStars
-                                ? 'fill-[#FBBC05] text-[#FBBC05]'
-                                : 'text-slate-600'
+                                ? 'fill-amber-400 text-amber-400'
+                                : 'text-slate-300'
                             }`}
                           />
                         </button>
@@ -164,26 +164,26 @@ export const InteractiveTapDemo: React.FC<InteractiveTapDemoProps> = ({ isOpen, 
 
                   <button
                     onClick={() => setSubmitted(true)}
-                    className="w-full py-3 text-[11px] uppercase tracking-[0.14em] font-bold text-slate-950 bg-white hover:bg-slate-200 rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                    className="w-full py-2.5 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                   >
                     <span>Post Review to Google</span>
-                    <Check className="w-3.5 h-3.5 text-slate-950" />
+                    <Check className="w-3.5 h-3.5 text-white" />
                   </button>
                 </div>
               ) : (
                 <div className="text-center py-6 space-y-3">
-                  <div className="w-10 h-10 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-10 h-10 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
                     <Check className="w-5 h-5" />
                   </div>
-                  <h4 className="text-sm font-bold text-white">
+                  <h4 className="text-sm font-bold text-slate-900">
                     5-Star Review Published
                   </h4>
-                  <p className="text-xs text-slate-300 max-w-xs mx-auto">
+                  <p className="text-xs text-slate-500 max-w-xs mx-auto">
                     Customer left 5 stars directly on your Google Maps profile in seconds.
                   </p>
                   <button
                     onClick={handleReset}
-                    className="inline-flex items-center gap-1.5 text-xs text-sky-400 hover:underline pt-2 cursor-pointer font-medium"
+                    className="inline-flex items-center gap-1.5 text-xs text-sky-700 hover:underline pt-2 cursor-pointer font-semibold"
                   >
                     <RotateCcw className="w-3 h-3" />
                     Reset Simulator
@@ -195,14 +195,14 @@ export const InteractiveTapDemo: React.FC<InteractiveTapDemoProps> = ({ isOpen, 
         </div>
 
         {/* Footer info in simulator */}
-        <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800 font-mono">
+        <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-200">
           <span>iPhone iOS 13+ & Android 5.0+ Supported</span>
           <button
             onClick={onClose}
-            className="text-sky-400 hover:text-white transition-colors cursor-pointer font-medium flex items-center gap-1"
+            className="text-sky-700 hover:text-sky-800 transition-colors cursor-pointer font-semibold flex items-center gap-1"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Exit Simulator</span>
+            <span>Close Simulator</span>
           </button>
         </div>
       </motion.div>

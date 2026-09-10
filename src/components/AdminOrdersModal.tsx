@@ -343,8 +343,8 @@ export const AdminOrdersModal: React.FC<AdminOrdersModalProps> = ({ isOpen, onCl
           <div className="p-3 rounded-lg bg-slate-900 border border-slate-800">
             <span className="text-xs text-slate-400 block">Sound Notification</span>
             <div className="text-xs font-semibold text-slate-300 mt-1 flex items-center gap-1">
-              <span className={`w-2 h-2 rounded-full ${soundEnabled ? 'bg-emerald-400' : 'bg-slate-500'}`} />
-              {soundEnabled ? 'Active (Chime on Order)' : 'Muted'}
+              <span className={`w-2 h-2 rounded-full ${isSoundEnabled ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+              {isSoundEnabled ? 'Active (Chime on Order)' : 'Muted'}
             </div>
           </div>
         </div>

@@ -1,9 +1,11 @@
 import React from 'react';
 import { PolicyType } from './PolicyModal';
 import { NewsletterSubscribe } from './NewsletterSubscribe';
+import { Logo } from './Logo';
 
 interface FooterProps {
   onNavigateToProducts: () => void;
+  onNavigateToBundles?: () => void;
   onNavigateToHowItWorks: () => void;
   onNavigateToImpact?: () => void;
   onNavigateToReviews?: () => void;
@@ -14,6 +16,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({
   onNavigateToProducts,
+  onNavigateToBundles,
   onNavigateToHowItWorks,
   onNavigateToImpact,
   onNavigateToReviews,
@@ -22,49 +25,46 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenOrderHistory,
 }) => {
   return (
-    <footer id="main-footer" className="bg-slate-900 text-white border-t border-slate-800 py-14 sm:py-18 relative overflow-hidden">
-      {/* Background ambient lighting */}
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-sky-600/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-600/5 rounded-full blur-3xl pointer-events-none" />
-
+    <footer id="main-footer" className="bg-white text-slate-900 border-t border-slate-200 py-14 sm:py-16 relative">
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 space-y-12">
         {/* Newsletter Subscription Banner */}
         <NewsletterSubscribe />
 
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 pb-10 border-b border-slate-800">
-          {/* Brand Info */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 pb-10 border-b border-slate-200">
+          {/* Brand Info with Logo Component */}
           <div className="space-y-1">
-            <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-white font-bold text-sm">
-                T
-              </span>
-              <span className="font-display text-base font-bold tracking-tight text-white flex items-center gap-1.5">
-                TAPPY <span className="text-[11px] font-medium text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded">NFC</span>
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 pl-10.5">
+            <Logo size="sm" />
+            <p className="text-xs text-slate-500 pl-9">
               Commercial Contactless Google Review Hardware
             </p>
           </div>
 
           {/* Links */}
-          <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-300 font-medium">
+          <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-600 font-medium">
             <button
               onClick={onNavigateToProducts}
-              className="hover:text-white transition-colors cursor-pointer py-1"
+              className="hover:text-slate-900 transition-colors cursor-pointer py-1"
             >
               Products
             </button>
+            {onNavigateToBundles && (
+              <button
+                onClick={onNavigateToBundles}
+                className="hover:text-sky-800 text-sky-700 transition-colors cursor-pointer py-1 font-semibold"
+              >
+                Bundle Offers (Save 22%)
+              </button>
+            )}
             <button
               onClick={onNavigateToHowItWorks}
-              className="hover:text-white transition-colors cursor-pointer py-1"
+              className="hover:text-slate-900 transition-colors cursor-pointer py-1"
             >
               How It Works
             </button>
             {onNavigateToImpact && (
               <button
                 onClick={onNavigateToImpact}
-                className="hover:text-white transition-colors cursor-pointer py-1"
+                className="hover:text-slate-900 transition-colors cursor-pointer py-1"
               >
                 Impact
               </button>
@@ -72,14 +72,14 @@ export const Footer: React.FC<FooterProps> = ({
             {onNavigateToReviews && (
               <button
                 onClick={onNavigateToReviews}
-                className="hover:text-white transition-colors cursor-pointer py-1"
+                className="hover:text-slate-900 transition-colors cursor-pointer py-1"
               >
                 Testimonials
               </button>
             )}
             <button
               onClick={onNavigateToFaqs}
-              className="hover:text-white transition-colors cursor-pointer py-1"
+              className="hover:text-slate-900 transition-colors cursor-pointer py-1"
             >
               FAQs
             </button>
@@ -87,53 +87,53 @@ export const Footer: React.FC<FooterProps> = ({
               <button
                 id="footer-track-orders-btn"
                 onClick={onOpenOrderHistory}
-                className="text-sky-400 hover:text-sky-300 font-medium transition-colors cursor-pointer py-1 flex items-center gap-1"
+                className="text-sky-700 hover:text-sky-800 font-semibold transition-colors cursor-pointer py-1 flex items-center gap-1"
               >
                 Track Order
               </button>
             )}
             <button
               onClick={() => onOpenPolicy('shipping')}
-              className="hover:text-white transition-colors cursor-pointer py-1"
+              className="hover:text-slate-900 transition-colors cursor-pointer py-1"
             >
               Shipping
             </button>
             <button
               onClick={() => onOpenPolicy('payment')}
-              className="hover:text-white transition-colors cursor-pointer py-1"
+              className="hover:text-slate-900 transition-colors cursor-pointer py-1"
             >
               Payment
             </button>
             <button
               onClick={() => onOpenPolicy('contact')}
-              className="hover:text-white transition-colors cursor-pointer py-1"
+              className="hover:text-slate-900 transition-colors cursor-pointer py-1"
             >
               Contact
             </button>
             <button
               onClick={() => onOpenPolicy('privacy')}
-              className="hover:text-white transition-colors cursor-pointer py-1"
+              className="hover:text-slate-900 transition-colors cursor-pointer py-1"
             >
               Privacy
             </button>
             <button
               onClick={() => onOpenPolicy('terms')}
-              className="hover:text-sky-400 transition-colors cursor-pointer py-1 active:scale-95"
+              className="hover:text-slate-900 transition-colors cursor-pointer py-1"
             >
               Terms
             </button>
           </nav>
         </div>
 
-        {/* Quick Contact & Social Channels Bar */}
-        <div className="py-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 text-xs font-mono">
-          <div className="flex flex-wrap items-center gap-4 text-slate-300">
-            <span className="text-slate-400 text-[11px] uppercase tracking-wider font-semibold">Direct Channels:</span>
+        {/* Direct Channels Bar */}
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="flex flex-wrap items-center gap-4 text-slate-700">
+            <span className="text-slate-500 text-[11px] uppercase tracking-wider font-semibold">Direct Channels:</span>
             <a
               href="https://www.facebook.com/profile.php?id=61593179006229"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sky-400 hover:text-sky-300 transition-colors flex items-center gap-1 font-bold"
+              className="text-sky-700 hover:text-sky-800 transition-colors font-semibold"
             >
               Facebook Page
             </a>
@@ -141,13 +141,13 @@ export const Footer: React.FC<FooterProps> = ({
               href="https://wa.me/639764421242"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#25D366] hover:underline flex items-center gap-1 font-bold"
+              className="text-emerald-700 hover:text-emerald-800 transition-colors font-semibold"
             >
               WhatsApp (09764421242)
             </a>
             <a
               href="tel:09764421242"
-              className="text-slate-200 hover:text-white transition-colors"
+              className="text-slate-700 hover:text-slate-900 transition-colors"
             >
               Viber / Tel: 09764421242
             </a>
@@ -156,7 +156,7 @@ export const Footer: React.FC<FooterProps> = ({
           <div>
             <a
               href="mailto:tappyofficialstore@gmail.com"
-              className="text-sky-400 hover:text-sky-300 font-bold transition-colors"
+              className="text-sky-700 hover:text-sky-800 font-semibold transition-colors"
             >
               tappyofficialstore@gmail.com
             </a>
@@ -164,10 +164,10 @@ export const Footer: React.FC<FooterProps> = ({
         </div>
 
         {/* Bottom copyright & note */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-mono">
+        <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <p>© 2026 TAPPY. All rights reserved.</p>
-          <p className="text-sky-400 font-medium flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <p className="text-slate-600 font-medium flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             Genuine NTAG213 NFC hardware · Manila, Philippines.
           </p>
         </div>

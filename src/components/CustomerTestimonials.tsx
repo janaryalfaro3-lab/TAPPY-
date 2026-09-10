@@ -69,26 +69,26 @@ const TESTIMONIALS: Testimonial[] = [
     location: 'Quezon City',
     productUsed: 'PVC Business Card & Round Sticker',
     rating: 5,
-    reviewsGained: 'Ranked #1 Auto Detailer locally',
-    headline: 'Best ROI hardware investment we made this year',
+    reviewsGained: '210 Google Reviews',
+    headline: 'Our detailing technicians hand it over at car handover',
     content:
-      'Our technicians carry the PVC cards when handing vehicle keys back to clients. Customers love the instant tap experience and we consistently get high-detail 5-star reviews with customer photos.',
+      'Clients appreciate the simplicity. Our crew presents the NFC card during vehicle inspection, and customers immediately tap and rate while their car keys are returned.',
     avatarInitials: 'MR',
   },
   {
     id: '4',
-    name: 'Katrina Dee',
-    role: 'General Manager',
-    business: 'Verde Urban Boutique Hotel',
-    category: 'Hospitality',
-    location: 'Pasig City',
-    productUsed: 'Acrylic Standee & PVC Cards',
+    name: 'Patricia Lim',
+    role: 'Co-Founder',
+    business: 'Bloom & Petal Florals',
+    category: 'Boutique & Retail',
+    location: 'Cebu City',
+    productUsed: 'Waterproof Round Sticker (35 mm)',
     rating: 5,
-    reviewsGained: 'Over 500+ Tourist Reviews',
-    headline: 'The easiest check-out review collection flow',
+    reviewsGained: '95+ Verified 5-Star Reviews',
+    headline: 'Stuck directly on our wrapping counter and receipt clipboard',
     content:
-      'Guests tap the front desk stand while paying their room bills. Foreign and local travelers alike find the tap intuitive and smooth. It significantly increased our Google ranking in Ortigas.',
-    avatarInitials: 'KD',
+      'The stickers look clean and professional on our wooden counter. Everyone who buys a bouquet taps with their phone. Fantastic customer support and quick delivery to Cebu!',
+    avatarInitials: 'PL',
   },
 ];
 
@@ -102,7 +102,7 @@ export const CustomerTestimonials: React.FC<CustomerTestimonialsProps> = ({
   useEffect(() => {
     const timer = setTimeout(() => {
       setInternalLoading(false);
-    }, 250);
+    }, 450);
     return () => clearTimeout(timer);
   }, []);
 
@@ -110,25 +110,31 @@ export const CustomerTestimonials: React.FC<CustomerTestimonialsProps> = ({
     if (!isAutoplay) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % TESTIMONIALS.length);
-    }, 7000);
+    }, 8000);
     return () => clearInterval(interval);
   }, [isAutoplay]);
 
+  const currentlyLoading = isLoading || internalLoading;
+  const current = TESTIMONIALS[currentIndex];
+
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? TESTIMONIALS.length - 1 : prev - 1));
+    setIsAutoplay(false);
+    setCurrentIndex((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
   };
 
   const handleNext = () => {
+    setIsAutoplay(false);
     setCurrentIndex((prev) => (prev + 1) % TESTIMONIALS.length);
   };
 
-  const current = TESTIMONIALS[currentIndex];
-  const currentlyLoading = isLoading || internalLoading;
-
   return (
-    <section
+    <motion.section
       id="testimonials-section"
-      className="relative py-20 sm:py-28 bg-slate-950 text-white border-b border-slate-800"
+      className="relative py-20 sm:py-28 bg-slate-50 text-slate-900 border-b border-slate-200"
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       onMouseEnter={() => setIsAutoplay(false)}
       onMouseLeave={() => setIsAutoplay(true)}
     >
@@ -136,19 +142,19 @@ export const CustomerTestimonials: React.FC<CustomerTestimonialsProps> = ({
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 sm:mb-16">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-900 border border-slate-800 text-slate-300 text-xs font-medium rounded-full">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-full shadow-2xs">
               <span>Client Case Studies</span>
             </div>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
               Trusted by 450+ Philippine Businesses
             </h2>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
               Discover how retail storefronts, cafes, and healthcare clinics convert foot traffic into verified 5-star Google reviews.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-lg self-start md:self-auto font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          <div className="flex items-center gap-2 text-xs text-slate-600 bg-white border border-slate-200 px-3.5 py-1.5 rounded-lg self-start md:self-auto font-medium shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span>Verified Customer Deployments</span>
           </div>
         </div>
@@ -160,7 +166,7 @@ export const CustomerTestimonials: React.FC<CustomerTestimonialsProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             {/* Left Feature Card: Active Testimonial (8 cols) */}
             <div className="lg:col-span-8">
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-10 h-full flex flex-col justify-between">
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-10 h-full flex flex-col justify-between shadow-2xs">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={current.id}
@@ -180,43 +186,43 @@ export const CustomerTestimonials: React.FC<CustomerTestimonialsProps> = ({
                               className="w-4 h-4 fill-amber-400 text-amber-400"
                             />
                           ))}
-                          <span className="ml-2 text-xs text-slate-300 font-semibold">5.0 / 5.0</span>
+                          <span className="ml-2 text-xs text-slate-700 font-semibold">5.0 / 5.0</span>
                         </div>
 
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-slate-300 text-xs font-medium">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                           <span>{current.reviewsGained}</span>
                         </div>
                       </div>
 
                       {/* Headline */}
-                      <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                      <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                         "{current.headline}"
                       </h3>
 
                       {/* Body Review */}
-                      <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
+                      <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
                         {current.content}
                       </p>
                     </div>
 
                     {/* Customer Info & Hardware Used */}
-                    <div className="pt-6 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-3.5">
-                        <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 text-white flex items-center justify-center font-bold text-sm">
+                        <div className="w-10 h-10 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 flex items-center justify-center font-bold text-sm">
                           {current.avatarInitials}
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-semibold text-white">
+                            <h4 className="text-sm font-bold text-slate-900">
                               {current.name}
                             </h4>
-                            <span className="text-[11px] text-slate-400 bg-slate-800 px-1.5 py-0.2 rounded border border-slate-700">
+                            <span className="text-[11px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
                               Verified
                             </span>
                           </div>
-                          <p className="text-xs text-slate-400">
-                            {current.role} · <span className="text-slate-300">{current.business}</span> ({current.location})
+                          <p className="text-xs text-slate-500">
+                            {current.role} · <span className="text-slate-700 font-medium">{current.business}</span> ({current.location})
                           </p>
                         </div>
                       </div>
@@ -225,7 +231,7 @@ export const CustomerTestimonials: React.FC<CustomerTestimonialsProps> = ({
                         <span className="text-slate-400 block text-[11px]">
                           Hardware Deployed
                         </span>
-                        <span className="font-medium text-slate-200">
+                        <span className="font-semibold text-slate-800">
                           {current.productUsed}
                         </span>
                       </div>
@@ -234,7 +240,7 @@ export const CustomerTestimonials: React.FC<CustomerTestimonialsProps> = ({
                 </AnimatePresence>
 
                 {/* Carousel Controls */}
-                <div className="flex items-center justify-between pt-6 mt-6 border-t border-slate-800">
+                <div className="flex items-center justify-between pt-6 mt-6 border-t border-slate-100">
                   <div className="flex items-center gap-1.5">
                     {TESTIMONIALS.map((item, idx) => (
                       <button
@@ -242,8 +248,8 @@ export const CustomerTestimonials: React.FC<CustomerTestimonialsProps> = ({
                         onClick={() => setCurrentIndex(idx)}
                         className={`h-1.5 rounded-full transition-all cursor-pointer ${
                           currentIndex === idx
-                            ? 'w-6 bg-white'
-                            : 'w-2 bg-slate-700 hover:bg-slate-600'
+                            ? 'w-6 bg-slate-900'
+                            : 'w-2 bg-slate-200 hover:bg-slate-300'
                         }`}
                         aria-label={`Go to slide ${idx + 1}`}
                       />
@@ -254,7 +260,7 @@ export const CustomerTestimonials: React.FC<CustomerTestimonialsProps> = ({
                     <button
                       id="testimonials-prev-btn"
                       onClick={handlePrev}
-                      className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
+                      className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
                       aria-label="Previous Review"
                     >
                       <ChevronLeft className="w-4 h-4" />
@@ -262,7 +268,7 @@ export const CustomerTestimonials: React.FC<CustomerTestimonialsProps> = ({
                     <button
                       id="testimonials-next-btn"
                       onClick={handleNext}
-                      className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition-colors cursor-pointer"
+                      className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
                       aria-label="Next Review"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -274,47 +280,47 @@ export const CustomerTestimonials: React.FC<CustomerTestimonialsProps> = ({
 
             {/* Right Sidebar: Key Highlights (4 cols) */}
             <div className="lg:col-span-4 flex flex-col gap-4">
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-sky-400 shrink-0">
+              <div className="bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-4 shadow-2xs">
+                <div className="w-10 h-10 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-700 shrink-0">
                   <Store className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-white">450+</div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xl font-bold text-slate-900">450+</div>
+                  <div className="text-xs text-slate-500">
                     Retail stores, cafes & clinics in the Philippines
                   </div>
                 </div>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 shrink-0">
+              <div className="bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-4 shadow-2xs">
+                <div className="w-10 h-10 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
                   <Star className="w-5 h-5 fill-amber-400" />
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-white">4.9 / 5.0</div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xl font-bold text-slate-900">4.9 / 5.0</div>
+                  <div className="text-xs text-slate-500">
                     Average merchant Google rating increase
                   </div>
                 </div>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 shrink-0">
+              <div className="bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-4 shadow-2xs">
+                <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
                   <Award className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-white">100% Guaranteed</div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xl font-bold text-slate-900">100% Guaranteed</div>
+                  <div className="text-xs text-slate-500">
                     Pre-encoded with your link & tested prior to dispatch
                   </div>
                 </div>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex-1 flex flex-col justify-center space-y-2">
-                <span className="text-xs font-semibold text-white">
+              <div className="bg-white border border-slate-200 rounded-xl p-5 flex-1 flex flex-col justify-center space-y-2 shadow-2xs">
+                <span className="text-xs font-bold text-slate-900">
                   Zero Ongoing Fees
                 </span>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-slate-500 leading-relaxed">
                   TAPPY hardware is a one-time purchase. No monthly recurring fees, no software apps, and unlimited lifetime contactless taps.
                 </p>
               </div>
@@ -322,6 +328,6 @@ export const CustomerTestimonials: React.FC<CustomerTestimonialsProps> = ({
           </div>
         )}
       </div>
-    </section>
+    </motion.section>
   );
 };

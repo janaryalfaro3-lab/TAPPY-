@@ -2,29 +2,32 @@ import React, { useState, useEffect } from 'react';
 import {
   Truck,
   CheckCircle,
-  Clock,
-  PackageCheck,
   Search,
   Copy,
   Check,
   ArrowLeft,
-  ExternalLink,
   MessageSquare,
-  ShieldCheck,
   Smartphone,
   Mail,
   MapPin,
-  Calendar,
   AlertCircle,
   RefreshCw,
   Sparkles,
   Printer,
+  Clock,
+  PackageCheck,
+  Cpu,
+  Layers,
+  ShieldCheck,
   ChevronRight,
+  ExternalLink,
 } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db, ORDERS_COLLECTION, getFirestoreOrderByOrderId } from '../services/firebaseService';
 import { Order, OrderStatus } from '../types';
 import { ProductMockup } from './ProductMockup';
+import { ProgressiveImage } from './ProgressiveImage';
+import { Logo } from './Logo';
 
 interface OrderTrackingPageProps {
   orderId?: string;
@@ -35,205 +38,193 @@ interface OrderTrackingPageProps {
 interface StageStep {
   id: 'pending' | 'processing' | 'in_production' | 'shipped' | 'delivered';
   title: string;
+  label: string; // concise badge for quick scan
   subtitle: string;
   description: string;
+  location: string;
+  icon: 'placed' | 'processing' | 'production' | 'transit' | 'delivered';
 }
 
 const STAGES: StageStep[] = [
   {
     id: 'pending',
     title: 'Order Placed',
-    subtitle: 'Payment Confirmed & Queued',
-    description: 'Payment verified successfully. Order entered into encoding schedule.',
+    label: 'Placed',
+    subtitle: 'Payment Verified & Logged',
+    description: 'Order confirmed and registered in production schedule.',
+    location: 'System Center · Manila',
+    icon: 'placed',
   },
   {
     id: 'processing',
     title: 'Processing',
-    subtitle: 'NFC Chip Encoding',
-    description: 'NTAG213 microchip pre-programmed with your business Google Review URL.',
+    label: 'Processing',
+    subtitle: 'NFC Microchip Pre-Encoding',
+    description: 'NTAG213 contactless chip programmed with your business Google Review link.',
+    location: 'Encoding Lab · Ortigas, Pasig',
+    icon: 'processing',
   },
   {
     id: 'in_production',
     title: 'In Production',
-    subtitle: 'Hardware Assembly & Quality Audit',
-    description: 'Laser assembly, anti-scratch surface inspection & 100% tap verification.',
+    label: 'Production',
+    subtitle: 'Precision Assembly & Quality Audit',
+    description: 'Anti-scratch surface polishing, UV alignment & 100% tap verification.',
+    location: 'Fabrication Facility · QC, Manila',
+    icon: 'production',
   },
   {
     id: 'shipped',
-    title: 'Shipped',
-    subtitle: 'In-Transit via Courier (J&T Express)',
-    description: 'Parcel dispatched to courier hub. Live tracking active with delivery driver.',
+    title: 'In Transit',
+    label: 'In Transit',
+    subtitle: 'Handed to Express Courier',
+    description: 'Dispatched via express logistics. In transit to destination storefront.',
+    location: 'Express Logistics Hub · Metro Manila',
+    icon: 'transit',
   },
   {
     id: 'delivered',
     title: 'Delivered',
-    subtitle: 'Delivered to Business Counter',
-    description: 'Package delivered and received. Ready for instant customer review tapping.',
+    label: 'Delivered',
+    subtitle: 'Arrived at Storefront / Office',
+    description: 'Package received and ready for instant contactless customer reviews.',
+    location: 'Merchant Address · Final Delivery',
+    icon: 'delivered',
   },
 ];
+
+const getStageIndex = (status: OrderStatus): number => {
+  switch (status) {
+    case 'pending':
+      return 0;
+    case 'processing':
+      return 1;
+    case 'in_production':
+      return 2;
+    case 'shipped':
+      return 3;
+    case 'delivered':
+      return 4;
+    default:
+      return 1;
+  }
+};
 
 export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
   orderId: initialOrderId,
   onBackToStore,
   onOpenChatWithOrder,
 }) => {
-  const [searchId, setSearchId] = useState(initialOrderId || '');
-  const [currentOrderId, setCurrentOrderId] = useState(initialOrderId || '');
+  const [currentOrderId, setCurrentOrderId] = useState<string>(initialOrderId || '');
+  const [searchId, setSearchId] = useState<string>(initialOrderId || '');
   const [order, setOrder] = useState<Order | null>(null);
-  const [firestoreDocId, setFirestoreDocId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [simulatedStatus, setSimulatedStatus] = useState<OrderStatus | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [copiedLink, setCopiedLink] = useState(false);
-  const [copiedOrderId, setCopiedOrderId] = useState(false);
+  const [copiedLink, setCopiedLink] = useState<boolean>(false);
+  const [copiedOrderId, setCopiedOrderId] = useState<boolean>(false);
 
-  // Normalize order stage
-  const getStageIndex = (status?: string | OrderStatus): number => {
-    switch (status) {
-      case 'pending':
-      case 'confirmed':
-        return 0;
-      case 'processing':
-        return 1;
-      case 'in_production':
-        return 2;
-      case 'shipped':
-        return 3;
-      case 'delivered':
-        return 4;
-      default:
-        return 1;
+  useEffect(() => {
+    if (!currentOrderId) {
+      const stored = localStorage.getItem('last_order');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as Order;
+          if (parsed && parsed.id) {
+            setCurrentOrderId(parsed.id);
+            setSearchId(parsed.id);
+            setOrder(parsed);
+            setLoading(false);
+            return;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      setLoading(false);
+      setError('Please provide an order number to track.');
+      return;
     }
-  };
-
-  // Fetch order data from Firestore or local storage
-  const loadOrder = async (id: string) => {
-    const cleanId = id.trim().toUpperCase();
-    if (!cleanId) return;
 
     setLoading(true);
     setError(null);
 
-    try {
-      // 1. Try fetching directly from Firestore
-      const fsData = await getFirestoreOrderByOrderId(cleanId);
-      if (fsData) {
-        setFirestoreDocId(fsData.docId);
-        setOrder({
-          id: fsData.orderId || cleanId,
-          createdAt: fsData.createdAt || 'Recent',
-          items: (fsData.items || []).map((item: any) => ({
-            product: {
-              id: item.productId || 'p1',
-              name: item.productName || 'NFC Hardware',
-              tagline: 'Google Review Hardware',
-              description: '',
-              size: 'Standard',
-              material: item.material || 'Premium Finish',
-              chipType: 'NTAG213',
-              format: item.format || 'stand',
-              features: [],
-              price: item.price || 0,
-              image: '',
-              idealFor: 'Business Counters',
-            },
-            quantity: item.quantity || 1,
-            businessName: item.businessName || '',
-            customGoogleLink: item.customGoogleLink || '',
-          })),
-          subtotal: fsData.subtotal || 0,
-          shipping: fsData.shipping || 0,
-          total: fsData.total || 0,
-          paymentMethod: fsData.paymentMethod || 'gcash',
-          customerInfo: fsData.customerInfo || {
-            fullName: 'Customer',
-            email: '',
-            phone: '',
-            address: '',
-            city: '',
-            postalCode: '',
-            businessName: '',
-            googleReviewUrlOrPlace: '',
+    let unsubscribe: (() => void) | null = null;
+
+    const setupListener = async () => {
+      try {
+        const orderRef = doc(db, ORDERS_COLLECTION, currentOrderId);
+        unsubscribe = onSnapshot(
+          orderRef,
+          (snapshot) => {
+            if (snapshot.exists()) {
+              const data = snapshot.data() as Order;
+              setOrder({ ...data, id: snapshot.id });
+              setLoading(false);
+            } else {
+              getFirestoreOrderByOrderId(currentOrderId)
+                .then((docOrder) => {
+                  if (docOrder) {
+                    setOrder(docOrder);
+                  } else {
+                    const localOrdersStr = localStorage.getItem('tappy_orders');
+                    if (localOrdersStr) {
+                      try {
+                        const localOrders = JSON.parse(localOrdersStr) as Order[];
+                        const matched = localOrders.find((o) => o.id === currentOrderId);
+                        if (matched) {
+                          setOrder(matched);
+                          setLoading(false);
+                          return;
+                        }
+                      } catch {
+                        // ignore
+                      }
+                    }
+                    setError(`No order found with ID "${currentOrderId}". Please verify your order number.`);
+                  }
+                  setLoading(false);
+                })
+                .catch(() => {
+                  setError(`Could not fetch order with ID "${currentOrderId}".`);
+                  setLoading(false);
+                });
+            }
           },
-          status: (fsData.status || 'processing') as OrderStatus,
-          estimatedDelivery: fsData.estimatedDelivery || '2–4 Business Days',
-          trackingNumber: fsData.trackingNumber || `JT-PH-${cleanId.replace('TR-', '')}`,
-          courier: fsData.courier || 'J&T Express Philippines',
-          trackingUrl: fsData.trackingUrl,
-          smsNotification: fsData.smsNotification || {
-            sent: true,
-            recipient: fsData.customerInfo?.phone || '',
-            status: 'DELIVERED_MOCK',
-          },
-        });
+          () => {
+            getFirestoreOrderByOrderId(currentOrderId)
+              .then((docOrder) => {
+                if (docOrder) {
+                  setOrder(docOrder);
+                } else {
+                  setError(`Order "${currentOrderId}" not found.`);
+                }
+                setLoading(false);
+              })
+              .catch(() => {
+                setError(`Could not connect to tracking database.`);
+                setLoading(false);
+              });
+          }
+        );
+      } catch {
+        setError('Error initializing tracking connection.');
         setLoading(false);
-        return;
       }
+    };
 
-      // 2. Fallback to localStorage saved orders
-      const stored = localStorage.getItem('tapreviewnfc_order_history');
-      if (stored) {
-        const localList: Order[] = JSON.parse(stored);
-        const found = localList.find((o) => o.id.toUpperCase() === cleanId);
-        if (found) {
-          setOrder(found);
-          setLoading(false);
-          return;
-        }
-      }
+    setupListener();
 
-      // 3. Fallback demo order if user enters demo ID or order not found in mock
-      if (cleanId.startsWith('TR-')) {
-        setError(`Order #${cleanId} was not found in active database records. Please double-check the Order ID sent to your email and SMS.`);
-      } else {
-        setError(`Please enter a valid TAPPY Order ID (e.g., TR-123456).`);
-      }
-      setOrder(null);
-    } catch (err: any) {
-      console.error('Error fetching tracking order:', err);
-      setError('Could not retrieve tracking details right now. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (initialOrderId) {
-      setSearchId(initialOrderId);
-      setCurrentOrderId(initialOrderId);
-      loadOrder(initialOrderId);
-    }
-  }, [initialOrderId]);
-
-  // Real-time Firestore subscription if docId is known
-  useEffect(() => {
-    if (!firestoreDocId) return;
-
-    const unsub = onSnapshot(doc(db, ORDERS_COLLECTION, firestoreDocId), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.status) {
-          setOrder((prev) => (prev ? { ...prev, status: data.status as OrderStatus } : null));
-        }
-      }
-    });
-
-    return () => unsub();
-  }, [firestoreDocId]);
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [currentOrderId]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchId.trim()) return;
-    const formatted = searchId.trim().toUpperCase();
-    setCurrentOrderId(formatted);
-
-    // Update browser URL quietly without reload
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.set('track', formatted);
-      window.history.replaceState({}, '', url.toString());
-    } catch (e) {}
-
-    loadOrder(formatted);
+    setSimulatedStatus(null);
+    setCurrentOrderId(searchId.trim());
   };
 
   const getTrackingShareUrl = () => {
@@ -255,48 +246,71 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
     setTimeout(() => setCopiedOrderId(false), 2000);
   };
 
-  const activeStageIdx = order ? getStageIndex(order.status) : 1;
+  const effectiveStatus: OrderStatus = simulatedStatus || (order ? order.status : 'processing');
+  const activeStageIdx = getStageIndex(effectiveStatus);
   const activeStageObj = STAGES[activeStageIdx] || STAGES[1];
 
+  // Progress percentage for visual connection track
+  const progressPercent = Math.min(100, Math.max(0, (activeStageIdx / (STAGES.length - 1)) * 100));
+
+  const renderStageIcon = (icon: StageStep['icon'], isCompleted: boolean, isCurrent: boolean) => {
+    if (isCompleted) {
+      return <Check className="w-4 h-4 text-white" strokeWidth={3} />;
+    }
+
+    switch (icon) {
+      case 'placed':
+        return <PackageCheck className={`w-4 h-4 ${isCurrent ? 'text-white' : 'text-slate-400'}`} />;
+      case 'processing':
+        return <Cpu className={`w-4 h-4 ${isCurrent ? 'text-white' : 'text-slate-400'}`} />;
+      case 'production':
+        return <Layers className={`w-4 h-4 ${isCurrent ? 'text-white' : 'text-slate-400'}`} />;
+      case 'transit':
+        return <Truck className={`w-4 h-4 ${isCurrent ? 'text-white' : 'text-slate-400'}`} />;
+      case 'delivered':
+        return <CheckCircle className={`w-4 h-4 ${isCurrent ? 'text-white' : 'text-slate-400'}`} />;
+      default:
+        return <Check className="w-4 h-4 text-white" />;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-sky-500/30 selection:text-sky-200">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
       {/* Top Tracking Navigation Bar */}
-      <header className="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-2xs">
+        <div className="flex items-center gap-4">
           <button
             onClick={onBackToStore}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-mono font-semibold transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Storefront</span>
           </button>
-          <div className="h-4 w-px bg-slate-800" />
-          <div className="flex items-center gap-2">
-            <span className="font-display font-extrabold text-white text-sm tracking-tight">
-              TAPPY<span className="text-sky-400">.</span>
-            </span>
-            <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 bg-slate-800/70 border border-slate-700/60 px-2 py-0.5 rounded-md">
+          <div className="h-4 w-px bg-slate-200" />
+          <div className="flex items-center gap-2.5">
+            <Logo size="sm" />
+            <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
               Order Tracker
             </span>
           </div>
         </div>
 
-        {/* Live Search Input in Navbar */}
+        {/* Live Search Form */}
         <form onSubmit={handleSearchSubmit} className="hidden sm:flex items-center gap-2 max-w-xs w-full">
           <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Track Order ID (TR-XXXXXX)..."
+              placeholder="Order ID (TR-XXXXXX)..."
               value={searchId}
               onChange={(e) => setSearchId(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white font-mono placeholder-slate-500 focus:outline-none focus:border-sky-400"
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-400 shadow-2xs"
             />
           </div>
           <button
             type="submit"
             disabled={loading || !searchId.trim()}
-            className="px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-40 text-slate-950 font-bold text-xs font-mono cursor-pointer transition-all"
+            className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-semibold text-xs cursor-pointer transition-colors shadow-2xs"
           >
             {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : 'Track'}
           </button>
@@ -315,13 +329,13 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
                 placeholder="Enter Order ID (e.g. TR-123456)..."
                 value={searchId}
                 onChange={(e) => setSearchId(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white font-mono placeholder-slate-500 focus:outline-none focus:border-sky-400"
+                className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-400"
               />
             </div>
             <button
               type="submit"
               disabled={loading || !searchId.trim()}
-              className="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs font-mono cursor-pointer"
+              className="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs cursor-pointer shadow-2xs"
             >
               {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Track'}
             </button>
@@ -331,108 +345,109 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
         {/* Loading Spinner */}
         {loading && (
           <div className="py-20 text-center space-y-3">
-            <RefreshCw className="w-8 h-8 text-sky-400 animate-spin mx-auto" />
-            <p className="text-sm font-mono text-slate-300">Retrieving real-time order & courier telemetry...</p>
+            <RefreshCw className="w-8 h-8 text-sky-600 animate-spin mx-auto" />
+            <p className="text-xs text-slate-500 font-medium">Retrieving real-time order status...</p>
           </div>
         )}
 
         {/* Error Alert */}
         {!loading && error && (
-          <div className="p-6 rounded-3xl bg-slate-900/90 border border-rose-500/30 space-y-4 text-center max-w-lg mx-auto my-12">
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center mx-auto">
+          <div className="p-6 rounded-2xl bg-white border border-rose-200 space-y-4 text-center max-w-lg mx-auto my-12 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto">
               <AlertCircle className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-white">Order Record Not Found</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">{error}</p>
+              <h3 className="text-base font-bold text-slate-900">Order Record Not Found</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">{error}</p>
             </div>
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2 font-mono text-xs">
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2 text-xs font-semibold">
               <button
                 onClick={onBackToStore}
-                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 cursor-pointer"
               >
                 Back to Storefront
               </button>
               {onOpenChatWithOrder && (
                 <button
                   onClick={() => onOpenChatWithOrder(searchId)}
-                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white cursor-pointer"
                 >
-                  Ask Chatbot for Help
+                  Ask Support
                 </button>
               )}
             </div>
           </div>
         )}
 
-        {/* Order Details & Live Visual Stage Timeline */}
+        {/* Order Details & Timeline */}
         {!loading && order && (
           <div className="space-y-6">
-            {/* Header Hero Card */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl relative overflow-hidden">
-              <div className="absolute -right-16 -top-16 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-
+            {/* Header Card */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 shadow-sm relative overflow-hidden">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
                 <div className="space-y-2.5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-slate-400">
-                      Tracking Status
+                    <span className="text-xs font-semibold text-slate-500">
+                      Tracking Status:
                     </span>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30">
-                      <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-800 border border-sky-200">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-600" />
+                      </span>
                       {activeStageObj.title} — {activeStageObj.subtitle}
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30">
-                      <CheckCircle className="w-3 h-3" />
-                      Real-time Firestore Sync
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 font-medium">
+                      <CheckCircle className="w-3 h-3 text-emerald-600" />
+                      Live Verified
                     </span>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
                       Order #{order.id}
                     </h1>
                     <button
                       onClick={handleCopyId}
-                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
                       title="Copy Order ID"
                     >
-                      {copiedOrderId ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                      {copiedOrderId ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-slate-300 font-mono flex flex-wrap items-center gap-x-4 gap-y-1">
-                    <span>Placed on: <strong className="text-white">{order.createdAt}</strong></span>
+                  <p className="text-xs text-slate-500 flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span>Placed on: <strong className="text-slate-800">{order.createdAt}</strong></span>
                     <span>•</span>
-                    <span>Est. Delivery: <strong className="text-white">{order.estimatedDelivery}</strong></span>
+                    <span>Est. Delivery: <strong className="text-slate-800">{order.estimatedDelivery}</strong></span>
                     <span>•</span>
-                    <span>Courier: <strong className="text-white">{order.courier || 'J&T Express'}</strong></span>
+                    <span>Courier: <strong className="text-slate-800">{order.courier || 'J&T Express'}</strong></span>
                   </p>
                 </div>
 
-                {/* Unique Shareable Tracking Link Pill Box */}
-                <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 max-w-md w-full space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-                    <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-                      Unique Tracking Link:
+                {/* Shareable Link Box */}
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 max-w-md w-full space-y-2">
+                  <div className="flex items-center justify-between text-xs text-slate-600">
+                    <span className="font-semibold text-slate-800 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+                      Shareable Tracking Link:
                     </span>
-                    <span className="text-[10px] text-slate-500">Email & SMS Link</span>
+                    <span className="text-[11px] text-slate-500">Live Status</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
                       readOnly
                       value={getTrackingShareUrl()}
-                      className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 font-mono truncate focus:outline-none"
+                      className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 truncate focus:outline-none shadow-2xs"
                     />
                     <button
                       onClick={handleCopyLink}
-                      className="px-3.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-mono font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shrink-0"
+                      className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs shrink-0"
                     >
                       {copiedLink ? (
                         <>
-                          <Check className="w-3.5 h-3.5 text-slate-950" />
+                          <Check className="w-3.5 h-3.5" />
                           <span>Copied!</span>
                         </>
                       ) : (
@@ -443,108 +458,250 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
                       )}
                     </button>
                   </div>
-                  <p className="text-[10px] text-slate-400">
-                    Bookmark or open this unique link on any device to view live order milestones anytime.
-                  </p>
                 </div>
+              </div>
+
+              {/* Interactive Stage Preview Toolbar */}
+              <div className="mt-6 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 text-slate-500 font-medium">
+                  <span className="text-[11px] uppercase tracking-wider font-semibold text-slate-400">
+                    Simulate Milestone:
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {STAGES.map((s) => {
+                      const isSelected = effectiveStatus === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setSimulatedStatus(s.id)}
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-sky-600 text-white shadow-2xs'
+                              : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {simulatedStatus && (
+                  <button
+                    type="button"
+                    onClick={() => setSimulatedStatus(null)}
+                    className="text-[11px] text-sky-700 hover:text-sky-900 font-semibold cursor-pointer underline"
+                  >
+                    Reset to Real Status
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Automated Dispatch Notification Badges (Email & Mock SMS Confirmation) */}
+            {/* Notification Status Badges */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Email Notification Confirmation */}
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex items-center gap-3 text-xs font-mono">
-                <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0">
-                  <Mail className="w-5 h-5" />
+              <div className="p-4 rounded-xl bg-white border border-slate-200 flex items-center gap-3 text-xs shadow-2xs">
+                <div className="w-9 h-9 rounded-lg bg-sky-50 border border-sky-200 text-sky-700 flex items-center justify-center shrink-0">
+                  <Mail className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-white">Email Confirmation Sent</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span className="font-bold text-slate-900">Email Confirmation Sent</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   </div>
-                  <p className="text-[11px] text-slate-400 truncate">
-                    Receipt & tracking link forwarded to <span className="text-slate-200 font-medium">{order.customerInfo.email}</span>
+                  <p className="text-[11px] text-slate-500 truncate">
+                    Receipt & tracking link sent to <span className="text-slate-800 font-medium">{order.customerInfo.email}</span>
                   </p>
                 </div>
               </div>
 
-              {/* Automated Mock SMS Confirmation */}
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex items-center gap-3 text-xs font-mono">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
-                  <Smartphone className="w-5 h-5" />
+              <div className="p-4 rounded-xl bg-white border border-slate-200 flex items-center gap-3 text-xs shadow-2xs">
+                <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0">
+                  <Smartphone className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-white">Automated SMS Dispatched</span>
-                    <span className="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 text-[9px] border border-emerald-500/40">Mock Active</span>
+                    <span className="font-bold text-slate-900">Courier SMS Updates Active</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   </div>
-                  <p className="text-[11px] text-slate-400 truncate">
-                    SMS milestone updates dispatched to <span className="text-slate-200 font-medium">{order.customerInfo.phone}</span>
+                  <p className="text-[11px] text-slate-500 truncate">
+                    Dispatch notifications enabled for <span className="text-slate-800 font-medium">{order.customerInfo.phone}</span>
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* 5-Stage Visual Progress Rail (Processing, In Production, Shipped, Delivered) */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs uppercase font-mono tracking-wider font-bold text-slate-400">
-                  Fulfillment & Delivery Milestones
-                </h2>
-                <span className="text-xs font-mono text-sky-400 font-semibold">
-                  Stage {activeStageIdx + 1} of {STAGES.length}
+            {/* ENHANCED VISUAL PROGRESS TIMELINE */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-8">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+                <div>
+                  <h2 className="text-sm uppercase tracking-wider font-bold text-slate-900 flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-sky-600" />
+                    <span>Visual Fulfillment & Delivery Progress</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Live updates across processing, fabrication, dispatch, and final storefront arrival.
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-800 border border-sky-200 self-start sm:self-auto">
+                  <span className="w-2 h-2 rounded-full bg-sky-600 animate-pulse" />
+                  Milestone {activeStageIdx + 1} of {STAGES.length}: {activeStageObj.title}
                 </span>
               </div>
 
-              {/* Step Timeline Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-3 relative">
+              {/* Connected Visual Progress Rail (Desktop / Tablet) */}
+              <div className="hidden md:block relative py-6">
+                {/* Background Connecting Rail Track */}
+                <div className="absolute top-[36px] left-[5%] right-[5%] h-1.5 bg-slate-100 rounded-full z-0" />
+
+                {/* Animated Gradient Active Fill Track */}
+                <div
+                  className="absolute top-[36px] left-[5%] h-1.5 bg-linear-to-r from-emerald-500 via-sky-500 to-sky-600 rounded-full z-0 transition-all duration-700 ease-out shadow-xs"
+                  style={{ width: `${progressPercent * 0.9}%` }}
+                />
+
+                {/* 5 Milestone Step Nodes */}
+                <div className="relative z-10 grid grid-cols-5 gap-2 text-center">
+                  {STAGES.map((stage, idx) => {
+                    const isCompleted = idx < activeStageIdx;
+                    const isCurrent = idx === activeStageIdx;
+                    const isUpcoming = idx > activeStageIdx;
+
+                    return (
+                      <div
+                        key={stage.id}
+                        className="flex flex-col items-center group cursor-pointer"
+                        onClick={() => setSimulatedStatus(stage.id)}
+                      >
+                        {/* Node Bubble with Status Icons */}
+                        <div className="relative">
+                          {isCurrent && (
+                            <div className="absolute -inset-2 rounded-full bg-sky-400/20 animate-ping z-0" />
+                          )}
+
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative z-10 shadow-xs ${
+                              isCompleted
+                                ? 'bg-emerald-600 text-white ring-4 ring-emerald-50'
+                                : isCurrent
+                                ? 'bg-sky-600 text-white ring-4 ring-sky-100 scale-110'
+                                : 'bg-white text-slate-400 border-2 border-slate-200'
+                            }`}
+                          >
+                            {renderStageIcon(stage.icon, isCompleted, isCurrent)}
+                          </div>
+
+                          {isCurrent && (
+                            <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] uppercase tracking-wider font-extrabold text-sky-700 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded-full shadow-2xs">
+                              Current
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Text Details */}
+                        <div className="mt-7 space-y-1 px-1">
+                          <h4
+                            className={`text-xs font-bold tracking-tight ${
+                              isCurrent
+                                ? 'text-sky-800 font-extrabold'
+                                : isCompleted
+                                ? 'text-slate-900'
+                                : 'text-slate-400'
+                            }`}
+                          >
+                            {stage.title}
+                          </h4>
+                          <p
+                            className={`text-[11px] leading-tight line-clamp-2 ${
+                              isCurrent
+                                ? 'text-slate-700 font-medium'
+                                : isCompleted
+                                ? 'text-slate-500'
+                                : 'text-slate-400'
+                            }`}
+                          >
+                            {stage.subtitle}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Detailed Visual Timeline Cards Grid (All devices) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2">
                 {STAGES.map((stage, idx) => {
                   const isCompleted = idx < activeStageIdx;
                   const isCurrent = idx === activeStageIdx;
-                  const isPending = idx > activeStageIdx;
+                  const isUpcoming = idx > activeStageIdx;
 
                   return (
                     <div
                       key={stage.id}
-                      className={`p-4 rounded-2xl border transition-all relative flex flex-col justify-between space-y-2 ${
+                      onClick={() => setSimulatedStatus(stage.id)}
+                      className={`p-4 rounded-xl border transition-all duration-200 flex flex-col justify-between space-y-3 cursor-pointer ${
                         isCurrent
-                          ? 'bg-sky-950/40 border-sky-500/60 ring-1 ring-sky-500/40 shadow-lg shadow-sky-500/10'
+                          ? 'bg-sky-50/70 border-sky-300 shadow-sm ring-2 ring-sky-500/20'
                           : isCompleted
-                          ? 'bg-slate-950/60 border-slate-800 text-slate-400'
-                          : 'bg-slate-950/30 border-slate-800/40 text-slate-600'
+                          ? 'bg-slate-50/80 border-slate-200 text-slate-700 hover:border-slate-300'
+                          : 'bg-white border-slate-100 text-slate-400 opacity-60 hover:opacity-80'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span
-                          className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-mono font-bold ${
-                            isCurrent
-                              ? 'bg-sky-500 text-slate-950 shadow-md'
-                              : isCompleted
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                              : 'bg-slate-800 text-slate-500'
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
+                            isCompleted
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              : isCurrent
+                              ? 'bg-sky-600 text-white shadow-2xs'
+                              : 'bg-slate-100 text-slate-400'
                           }`}
                         >
-                          {isCompleted ? <Check className="w-3.5 h-3.5" /> : idx + 1}
+                          {isCompleted ? (
+                            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                          ) : (
+                            idx + 1
+                          )}
                         </span>
 
-                        {isCurrent && (
-                          <span className="text-[10px] uppercase font-mono font-bold text-sky-400 animate-pulse">
-                            Current Stage
+                        {isCurrent ? (
+                          <span className="text-[10px] uppercase font-bold text-sky-700 bg-sky-100/80 px-2 py-0.5 rounded-full">
+                            Active Step
+                          </span>
+                        ) : isCompleted ? (
+                          <span className="text-[10px] font-semibold text-emerald-700">
+                            Completed
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-slate-400">
+                            Upcoming
                           </span>
                         )}
                       </div>
 
-                      <div className="space-y-1 pt-1">
+                      <div className="space-y-1">
                         <h4
                           className={`text-sm font-bold tracking-tight ${
-                            isCurrent ? 'text-white' : isCompleted ? 'text-slate-200' : 'text-slate-500'
+                            isCurrent
+                              ? 'text-slate-900'
+                              : isCompleted
+                              ? 'text-slate-800'
+                              : 'text-slate-400'
                           }`}
                         >
                           {stage.title}
                         </h4>
                         <p
-                          className={`text-[11px] font-mono leading-tight ${
-                            isCurrent ? 'text-sky-300' : isCompleted ? 'text-slate-400' : 'text-slate-600'
+                          className={`text-[11px] leading-tight font-medium ${
+                            isCurrent
+                              ? 'text-sky-800'
+                              : isCompleted
+                              ? 'text-slate-600'
+                              : 'text-slate-400'
                           }`}
                         >
                           {stage.subtitle}
@@ -552,31 +709,38 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
                       </div>
 
                       <p
-                        className={`text-[10px] leading-relaxed pt-1 border-t ${
+                        className={`text-[11px] leading-relaxed pt-2 border-t ${
                           isCurrent
-                            ? 'text-slate-300 border-sky-800/40'
-                            : 'text-slate-500 border-slate-800/60'
+                            ? 'text-slate-600 border-sky-200'
+                            : 'text-slate-500 border-slate-200'
                         }`}
                       >
                         {stage.description}
                       </p>
+
+                      <div className="pt-1 text-[10px] text-slate-400 font-mono truncate">
+                        📍 {stage.location}
+                      </div>
                     </div>
                   );
                 })}
               </div>
 
               {/* Waybill / Courier Telemetry Bar */}
-              <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-mono">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-sky-50 border border-sky-200 text-sky-700 flex items-center justify-center shrink-0">
                     <Truck className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase text-slate-400 font-semibold block">
-                      Express Courier Partner
+                    <span className="text-[11px] uppercase text-slate-500 font-semibold block">
+                      Express Courier Partner & Real-Time Air Waybill
                     </span>
-                    <span className="font-bold text-white">
-                      {order.courier || 'J&T Express Philippines'} · Waybill: <strong className="text-sky-400">{order.trackingNumber || `JT-PH-${order.id.replace('TR-', '')}`}</strong>
+                    <span className="font-bold text-slate-900">
+                      {order.courier || 'J&T Express Philippines'} · Waybill:{' '}
+                      <strong className="text-sky-700 font-mono">
+                        {order.trackingNumber || `JT-PH-${order.id.replace('TR-', '')}`}
+                      </strong>
                     </span>
                   </div>
                 </div>
@@ -585,15 +749,15 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
                   {onOpenChatWithOrder && (
                     <button
                       onClick={() => onOpenChatWithOrder(order.id)}
-                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer font-bold"
+                      className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer font-semibold shadow-2xs"
                     >
-                      <MessageSquare className="w-3.5 h-3.5 text-sky-400" />
-                      <span>Ask Chatbot</span>
+                      <MessageSquare className="w-3.5 h-3.5 text-sky-600" />
+                      <span>Ask Support</span>
                     </button>
                   )}
                   <button
                     onClick={() => window.print()}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
                   >
                     <Printer className="w-3.5 h-3.5" />
                     <span>Print Slip</span>
@@ -602,37 +766,59 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
               </div>
             </div>
 
-            {/* Two-Column Details Grid: Order Items & Customer / Destination */}
+            {/* Two-Column Details Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Items Ordered (2 Cols) */}
+              {/* Items Ordered with Progressive Images (2 Cols) */}
               <div className="md:col-span-2 space-y-4">
-                <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-lg space-y-4">
-                  <h3 className="text-xs uppercase font-mono tracking-wider font-bold text-slate-400">
-                    Hardware In Production / Shipped
-                  </h3>
+                <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs uppercase tracking-wider font-bold text-slate-600">
+                      Hardware Units in Order
+                    </h3>
+                    <span className="text-xs text-slate-500">
+                      {order.items.reduce((acc, i) => acc + i.quantity, 0)} Items Total
+                    </span>
+                  </div>
 
-                  <div className="divide-y divide-slate-800 border border-slate-800 rounded-2xl overflow-hidden bg-slate-950/60">
+                  <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden bg-white">
                     {order.items.map((item, idx) => (
-                      <div key={idx} className="p-4 flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-slate-900 border border-slate-700 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
-                            <div className="transform scale-50 origin-center">
-                              <ProductMockup format={item.product.format} />
-                            </div>
+                      <div key={idx} className="p-4 flex items-center justify-between gap-4 text-xs">
+                        <div className="flex items-center gap-3 min-w-0">
+                          {/* Product Image Stage */}
+                          <div className="w-14 h-14 bg-gradient-to-b from-stone-900 to-stone-950 border border-stone-800 rounded-xl overflow-hidden shrink-0 flex items-center justify-center p-1 shadow-inner">
+                            {item.product.image ? (
+                              <img
+                                src={item.product.image}
+                                alt={item.product.name}
+                                loading="eager"
+                                decoding="sync"
+                                className="w-full h-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <div className="transform scale-50 origin-center">
+                                  <ProductMockup format={item.product.format} />
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div>
-                            <div className="font-bold text-white text-sm">{item.product.name}</div>
-                            <div className="text-[11px] text-slate-400 font-mono">
-                              Format: <strong className="text-slate-300">{item.product.format?.toUpperCase()}</strong> · Qty: {item.quantity} · NTAG213 Microchip
+
+                          <div className="min-w-0">
+                            <div className="font-bold text-slate-900 text-sm truncate">
+                              {item.product.name}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              Format: <strong className="text-slate-700">{item.product.format?.toUpperCase()}</strong> · Qty: {item.quantity} · NTAG213 Microchip
                             </div>
                             {item.businessName && (
-                              <div className="text-[11px] text-sky-400 font-mono pt-0.5">
+                              <div className="text-xs text-sky-700 font-medium pt-0.5 truncate">
                                 Pre-programmed for: {item.businessName}
                               </div>
                             )}
                           </div>
                         </div>
-                        <div className="font-mono text-white font-bold text-sm text-right">
+
+                        <div className="text-slate-900 font-bold text-sm text-right shrink-0">
                           ₱{(item.product.price * item.quantity).toLocaleString()}
                         </div>
                       </div>
@@ -641,17 +827,21 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
 
                   {/* Google Review URL info */}
                   {(order.customerInfo.businessName || order.customerInfo.googleReviewUrlOrPlace) && (
-                    <div className="p-4 rounded-2xl bg-sky-950/30 border border-sky-500/30 text-xs font-mono space-y-1">
-                      <div className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">
-                        Google Review Pre-Programming Status:
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+                      <div className="text-[11px] uppercase font-bold text-sky-800 tracking-wider flex items-center gap-1.5">
+                        <CheckCircle className="w-3.5 h-3.5 text-sky-600" />
+                        <span>Google Review Pre-Programming Status:</span>
                       </div>
-                      <div className="text-slate-300">
+                      <div className="text-slate-600 space-y-0.5">
                         {order.customerInfo.businessName && (
-                          <p>Business Name: <strong className="text-white">{order.customerInfo.businessName}</strong></p>
+                          <p>
+                            Business Name: <strong className="text-slate-900">{order.customerInfo.businessName}</strong>
+                          </p>
                         )}
                         {order.customerInfo.googleReviewUrlOrPlace && (
                           <p className="truncate">
-                            Link / Map Place: <strong className="text-white">{order.customerInfo.googleReviewUrlOrPlace}</strong>
+                            Link / Map Place:{' '}
+                            <strong className="text-slate-900">{order.customerInfo.googleReviewUrlOrPlace}</strong>
                           </p>
                         )}
                       </div>
@@ -663,41 +853,51 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
               {/* Customer & Payment Breakdown (1 Col) */}
               <div className="space-y-4">
                 {/* Shipping Destination */}
-                <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-lg space-y-3 font-mono text-xs">
-                  <div className="flex items-center gap-2 text-slate-300 font-bold uppercase text-[11px]">
-                    <MapPin className="w-4 h-4 text-sky-400" />
+                <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 text-xs">
+                  <div className="flex items-center gap-2 text-slate-700 font-bold uppercase text-[11px]">
+                    <MapPin className="w-4 h-4 text-sky-600" />
                     <span>Shipping Destination</span>
                   </div>
-                  <div className="space-y-1 text-slate-300 border-t border-slate-800 pt-3">
-                    <p className="text-white font-bold text-sm">{order.customerInfo.fullName}</p>
-                    <p className="text-slate-400">{order.customerInfo.address}</p>
-                    <p className="text-slate-400">{order.customerInfo.city} {order.customerInfo.postalCode}</p>
-                    <p className="text-sky-300 pt-1">Phone: {order.customerInfo.phone}</p>
+                  <div className="space-y-1 text-slate-600 border-t border-slate-200 pt-3">
+                    <p className="text-slate-900 font-bold text-sm">{order.customerInfo.fullName}</p>
+                    <p className="text-slate-500">{order.customerInfo.address}</p>
+                    <p className="text-slate-500">
+                      {order.customerInfo.city} {order.customerInfo.postalCode}
+                    </p>
+                    <p className="text-slate-700 pt-1 font-medium">Phone: {order.customerInfo.phone}</p>
                   </div>
                 </div>
 
                 {/* Financial Totals */}
-                <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-lg space-y-3 font-mono text-xs">
-                  <h3 className="text-slate-400 font-bold uppercase text-[11px]">
+                <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3 text-xs">
+                  <h3 className="text-slate-600 font-bold uppercase text-[11px]">
                     Payment Summary
                   </h3>
-                  <div className="space-y-2 border-t border-slate-800 pt-3">
-                    <div className="flex justify-between text-slate-400">
+                  <div className="space-y-2 border-t border-slate-200 pt-3">
+                    <div className="flex justify-between text-slate-500">
                       <span>Subtotal</span>
-                      <span className="text-white font-bold">₱{order.subtotal.toLocaleString()}</span>
+                      <span className="text-slate-900 font-bold">₱{order.subtotal.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between text-slate-400">
+                    <div className="flex justify-between text-slate-500">
                       <span>Shipping</span>
-                      <span className="font-bold text-white">{order.shipping === 0 ? 'FREE' : `₱${order.shipping}`}</span>
+                      <span className="font-bold text-slate-900">
+                        {order.shipping === 0 ? 'FREE' : `₱${order.shipping}`}
+                      </span>
                     </div>
-                    <div className="flex justify-between text-slate-400">
+                    <div className="flex justify-between text-slate-500">
                       <span>Method</span>
-                      <span className="uppercase text-slate-200 font-bold">{order.paymentMethod.replace('_', ' ')}</span>
+                      <span className="uppercase text-slate-800 font-semibold">
+                        {order.paymentMethod.replace('_', ' ')}
+                      </span>
                     </div>
-                    <div className="h-px bg-slate-800 my-1" />
-                    <div className="flex justify-between items-baseline text-white">
-                      <span className="font-bold text-xs uppercase tracking-wider text-slate-300">Total Paid</span>
-                      <span className="text-xl font-black text-white">₱{order.total.toLocaleString()}</span>
+                    <div className="h-px bg-slate-200 my-1" />
+                    <div className="flex justify-between items-baseline text-slate-900">
+                      <span className="font-bold text-xs uppercase tracking-wider text-slate-600">
+                        Total Paid
+                      </span>
+                      <span className="text-xl font-bold text-slate-900">
+                        ₱{order.total.toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 </div>

@@ -59,29 +59,28 @@ export const FAQSection: React.FC = () => {
   return (
     <motion.section
       id="faqs-section"
-      className="py-24 sm:py-32 bg-slate-950/50 text-white border-b border-slate-800/80 backdrop-blur-xs relative z-10"
-      initial={{ opacity: 0, y: 32 }}
+      className="py-20 sm:py-28 bg-white text-slate-900 border-b border-slate-200 relative z-10"
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="max-w-3xl mx-auto px-6 md:px-12">
         {/* Section Header */}
-        <div className="mb-14 sm:mb-16 space-y-3 text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-500/10 border border-sky-500/30 text-sky-400 text-[11px] font-mono font-bold tracking-wide rounded-full shadow-2xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-            <span>COMMON INQUIRIES</span>
+        <div className="mb-12 sm:mb-14 space-y-3 text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold rounded-full shadow-2xs">
+            <span>Frequently Asked Questions</span>
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-            Questions, Answered.
+          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
+            Questions, Answered
           </h2>
-          <p className="text-sm sm:text-base text-slate-400 leading-relaxed tracking-wide">
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
             Everything you need to know about our NFC Google Review products, setup, and ordering.
           </p>
         </div>
 
-        {/* Minimalist Accordion */}
-        <div className="divide-y divide-slate-800/80 border-y border-slate-800/80 bg-slate-900/60 backdrop-blur-xl rounded-3xl p-4 sm:p-6 shadow-2xl ring-1 ring-white/10">
+        {/* Accordion */}
+        <div className="divide-y divide-slate-200 bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-2xs">
           {FAQS.map((faq, idx) => {
             const isOpen = openIndex === idx;
             return (
@@ -89,28 +88,28 @@ export const FAQSection: React.FC = () => {
                 <button
                   id={`faq-toggle-${idx}`}
                   onClick={() => toggleItem(idx)}
-                  className="w-full py-6 flex items-center justify-between text-left gap-6 cursor-pointer select-none transition-all active:scale-[0.98]"
+                  className="w-full py-5 flex items-center justify-between text-left gap-6 cursor-pointer select-none transition-all"
                   aria-expanded={isOpen}
                 >
                   <span
-                    className={`text-base sm:text-[17px] font-semibold tracking-wide transition-colors ${
-                      isOpen ? 'text-sky-400' : 'text-slate-200 group-hover:text-white'
+                    className={`text-base font-semibold transition-colors ${
+                      isOpen ? 'text-sky-800 font-bold' : 'text-slate-900 group-hover:text-sky-700'
                     }`}
                   >
                     {faq.question}
                   </span>
 
-                  {/* Elegant Thin Cross Icon that smoothly rotates */}
-                  <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 border border-slate-700 text-slate-400 group-hover:text-sky-400 group-hover:border-sky-500/50 transition-all">
+                  {/* Clean Rotation Icon */}
+                  <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-500 group-hover:text-sky-700 group-hover:border-slate-300 transition-all shadow-2xs">
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
-                      strokeWidth="1.6"
+                      strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className={`w-4 h-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                        isOpen ? 'rotate-45 text-sky-400' : 'rotate-0'
+                      className={`w-3.5 h-3.5 transition-transform duration-250 ease-out ${
+                        isOpen ? 'rotate-45 text-sky-700' : 'rotate-0'
                       }`}
                     >
                       <line x1="12" y1="5" x2="12" y2="19" />
@@ -125,10 +124,10 @@ export const FAQSection: React.FC = () => {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                       className="overflow-hidden"
                     >
-                      <div className="pb-6 pr-6 text-sm text-slate-300 leading-[1.8] tracking-[0.015em]">
+                      <div className="pb-5 pr-6 text-sm text-slate-600 leading-relaxed">
                         {faq.answer}
                       </div>
                     </motion.div>

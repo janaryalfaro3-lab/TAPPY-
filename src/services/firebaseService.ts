@@ -340,3 +340,50 @@ export async function lookupOrderInFirestore(queryInput: string): Promise<Firest
   }
 }
 
+/**
+ * Fetch a single order by human-readable orderId from Firestore
+ */
+export async function getFirestoreOrderByOrderId(orderId: string): Promise<any | null> {
+  try {
+    const cleanId = (orderId || '').trim();
+    if (!cleanId) return null;
+    const candidates = [cleanId, cleanId.toUpperCase()];
+    if (!cleanId.toUpperCase().startsWith('TR-') && /^\d{5,8}$/.test(cleanId)) {
+      candidates.push(`TR-${cleanId.toUpperCase()}`);
+    }
+
+    for (const testId of candidates) {
+      const q = query(collection(db, ORDERS_COLLECTION), where('orderId', '==', testId));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        const docSnap = snapshot.docs[0];
+        return {
+          docId: docSnap.id,
+          ...docSnap.data(),
+        };
+      }
+    }
+
+    // Direct doc id fallback
+    if (cleanId.length > 10) {
+      try {
+        const docRef = doc(db, ORDERS_COLLECTION, cleanId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          return {
+            docId: docSnap.id,
+            ...docSnap.data(),
+          };
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    return null;
+  } catch (e) {
+    console.warn(`Could not fetch Firestore order for ${orderId}:`, e);
+    return null;
+  }
+}
+

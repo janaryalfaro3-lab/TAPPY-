@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Search, X, SlidersHorizontal, Sparkles, AlertCircle } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Search, X, SlidersHorizontal } from 'lucide-react';
 import { Product } from '../types';
 import { ProductCard } from './ProductCard';
 import { ProductCardSkeleton } from './ProductCardSkeleton';
@@ -32,22 +32,19 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
   const [activeFilter, setActiveFilter] = useState('all');
   const [internalLoading, setInternalLoading] = useState(true);
 
-  // Initial content loading simulation for smooth perception
   useEffect(() => {
     const timer = setTimeout(() => {
       setInternalLoading(false);
-    }, 600);
+    }, 400);
     return () => clearTimeout(timer);
   }, []);
 
   const currentlyLoading = isLoading || internalLoading;
 
-  // Real-time search and filter logic
   const filteredProducts = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
 
     return products.filter((product) => {
-      // Check quick category filter
       let matchesFilter = true;
       if (activeFilter === 'stand') matchesFilter = product.format === 'stand';
       else if (activeFilter === 'sticker') matchesFilter = product.format === 'sticker';
@@ -57,8 +54,6 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
       else if (activeFilter === 'pvc') matchesFilter = product.material.toLowerCase().includes('pvc');
 
       if (!matchesFilter) return false;
-
-      // Check text search query
       if (!query) return true;
 
       const searchableText = [
@@ -86,31 +81,31 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
   return (
     <motion.section
       id="products-section"
-      className="py-24 sm:py-32 bg-slate-950/40 text-white border-b border-slate-800/80 relative backdrop-blur-xs z-10"
-      initial={{ opacity: 0, y: 36 }}
+      className="py-20 sm:py-28 bg-white text-slate-900 border-b border-slate-200 relative z-10"
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-10 sm:mb-12">
           <div className="max-w-2xl space-y-3 text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-900 border border-slate-800 text-slate-300 text-xs font-medium rounded-full">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold rounded-full">
               <span>Hardware Catalog</span>
             </div>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
               Select Your Hardware Format
             </h2>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
               Four commercial formats engineered for checkout counters, reception desks, dining tables, and mobile teams.
             </p>
           </div>
 
           {/* Product Count Pill */}
-          <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-lg self-start lg:self-auto font-medium">
+          <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-lg self-start lg:self-auto font-medium">
             <span>Showing</span>
-            <strong className="text-white">{filteredProducts.length}</strong>
+            <strong className="text-slate-900">{filteredProducts.length}</strong>
             <span>of {products.length} models</span>
           </div>
         </div>
@@ -127,14 +122,14 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search products by format or material..."
-              className="w-full pl-10 pr-10 py-2.5 bg-slate-900 hover:bg-slate-900/90 focus:bg-slate-900 border border-slate-800 focus:border-slate-600 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none transition-colors"
+              className="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 focus:border-slate-400 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-colors"
             />
             {searchQuery && (
               <button
                 id="clear-product-search-btn"
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 p-1 rounded bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="absolute right-2.5 p-1 rounded bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
                 title="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
@@ -144,8 +139,8 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
 
           {/* Quick Category Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs scrollbar-none">
-            <span className="text-slate-400 text-xs font-medium flex items-center gap-1 shrink-0 mr-1">
-              <SlidersHorizontal className="w-3 h-3 text-slate-400" />
+            <span className="text-slate-500 text-xs font-semibold flex items-center gap-1 shrink-0 mr-1">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
               Filter:
             </span>
             {QUICK_FILTERS.map((filter) => {
@@ -157,8 +152,8 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
                   onClick={() => setActiveFilter(filter.id)}
                   className={`px-3 py-1.5 rounded-md border text-xs transition-colors cursor-pointer whitespace-nowrap font-medium ${
                     isSelected
-                      ? 'bg-white text-slate-950 border-white font-semibold'
-                      : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                      ? 'bg-slate-900 text-white border-slate-900 font-semibold'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 >
                   {filter.label}
@@ -170,7 +165,7 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
               <button
                 id="reset-all-filters-btn"
                 onClick={handleClearSearch}
-                className="text-xs text-sky-400 hover:text-sky-300 underline ml-2 shrink-0 cursor-pointer"
+                className="text-xs text-sky-600 hover:text-sky-700 font-semibold underline ml-2 shrink-0 cursor-pointer"
               >
                 Reset filters
               </button>
@@ -180,7 +175,7 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
 
         {/* 4-Product Grid with Skeletons or Cards */}
         {currentlyLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((n) => (
               <ProductCardSkeleton key={`product-skeleton-${n}`} />
             ))}
@@ -189,47 +184,37 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
           /* Empty Search State */
           <div
             id="empty-search-state"
-            className="bg-slate-900/60 border border-slate-800 rounded-3xl p-12 text-center max-w-xl mx-auto space-y-4 my-8 backdrop-blur-md"
+            className="bg-slate-50 border border-slate-200 rounded-2xl p-12 text-center max-w-xl mx-auto space-y-4 my-8"
           >
-            <div className="w-14 h-14 rounded-2xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-slate-400 mx-auto shadow-inner">
-              <Search className="w-6 h-6 text-slate-400" />
+            <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mx-auto">
+              <Search className="w-5 h-5 text-slate-400" />
             </div>
-            <div className="space-y-1.5">
-              <h3 className="font-display text-lg font-bold text-white">
+            <div className="space-y-1">
+              <h3 className="font-display text-base font-bold text-slate-900">
                 No NFC Products Found
               </h3>
-              <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
-                No items match "{searchQuery || activeFilter}". Try searching for keywords like <span className="text-sky-400 font-mono">stand</span>, <span className="text-sky-400 font-mono">sticker</span>, <span className="text-sky-400 font-mono">card</span>, or <span className="text-sky-400 font-mono">tag</span>.
+              <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+                No items match "{searchQuery || activeFilter}". Try searching for <span className="text-sky-600 font-medium">stand</span>, <span className="text-sky-600 font-medium">sticker</span>, or <span className="text-sky-600 font-medium">card</span>.
               </p>
             </div>
             <button
               id="clear-search-empty-btn"
               onClick={handleClearSearch}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-sky-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg active:scale-95"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white font-semibold text-xs transition-colors cursor-pointer shadow-xs active:scale-98"
             >
-              <span>View All 4 Products</span>
+              <span>View All Products</span>
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-6">
-            {filteredProducts.map((product, idx) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 32 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{
-                  duration: 0.55,
-                  delay: idx * 0.08,
-                  ease: [0.21, 0.47, 0.32, 0.98],
-                }}
-              >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 card-perspective-container">
+            {filteredProducts.map((product) => (
+              <div key={product.id} className="card-perspective-container h-full">
                 <ProductCard
                   product={product}
                   onSelectProduct={onSelectProduct}
                   onAddToCart={onAddToCart}
                 />
-              </motion.div>
+              </div>
             ))}
           </div>
         )}
@@ -237,4 +222,3 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
     </motion.section>
   );
 };
-
